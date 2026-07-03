@@ -1,0 +1,40 @@
+name: community_suite
+description: Aplikasi mobile untuk admin mengelola server Discord (moderasi, event, dashboard)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # Backend & Auth
+  supabase_flutter: ^2.5.6      # Login Discord + baca data langsung (opsional)
+  http: ^1.2.1                  # Panggil REST API backend kita
+  flutter_secure_storage: ^9.2.2 # Simpan access token dengan aman
+  socket_io_client: ^2.0.3      # WebSocket untuk fitur Real-time
+
+  # Push Notification
+  firebase_core: ^2.31.1
+  firebase_messaging: ^14.9.4
+
+  # State management ringan
+  provider: ^6.1.2
+
+  # UI helper
+  intl: ^0.19.0                 # Format tanggal/waktu (Indonesia)
+  table_calendar: ^3.1.2        # Kalender untuk fitur event
+  url_launcher: ^6.3.0          # Buka link eksternal seperti WhatsApp
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
