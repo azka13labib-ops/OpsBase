@@ -1,4 +1,4 @@
-# General OS files
+
 .DS_Store
 .DS_Store?
 ._*
@@ -8,7 +8,6 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# IDEs and Editors
 .vscode/
 .idea/
 *.suo
@@ -19,7 +18,6 @@ desktop.ini
 *.swp
 *.iml
 
-# Node.js (for backend)
 node_modules/
 npm-debug.log
 yarn-error.log
@@ -34,7 +32,6 @@ dist/
 build/
 out/
 
-# Flutter / Dart (for mobile-app)
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -43,7 +40,6 @@ out/
 /build/
 lib/generated_plugin_registrant.dart
 
-# iOS/Android Build files
 *.pbxuser
 *.mode1v3
 *.mode2v3
@@ -57,6 +53,5 @@ DerivedData
 *.xcuserstate
 project.xcworkspace/
 
-# Miscellaneous
 *.log
 *.sqlite
