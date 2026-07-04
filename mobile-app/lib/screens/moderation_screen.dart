@@ -42,7 +42,9 @@ class _ModerationScreenState extends State<ModerationScreen> {
   }
 
   Future<void> _refresh() async {
-    setState(() => _historyFuture = _load());
+    setState(() {
+      _historyFuture = _load();
+    });
     await _historyFuture;
   }
 

@@ -79,6 +79,8 @@ class ApiService {
     required String title,
     String? description,
     String? channelId,
+    String? location,
+    String? coverUrl,
     required DateTime startTime,
     DateTime? endTime,
     bool isRecurring = false,
@@ -89,6 +91,8 @@ class ApiService {
       'title': title,
       if (description != null) 'description': description,
       if (channelId != null) 'channelId': channelId,
+      if (location != null) 'location': location,
+      if (coverUrl != null) 'coverUrl': coverUrl,
       'startTime': startTime.toIso8601String(),
       if (endTime != null) 'endTime': endTime.toIso8601String(),
       'isRecurring': isRecurring,
@@ -99,6 +103,31 @@ class ApiService {
   }
 
   static Future<void> deleteEvent(String eventId) => _delete('/api/events/$eventId');
+
+  static Future<Map<String, dynamic>> updateEvent(String eventId, {
+    required String title,
+    String? description,
+    String? channelId,
+    String? location,
+    String? coverUrl,
+    required DateTime startTime,
+    DateTime? endTime,
+    bool isRecurring = false,
+    String? recurrenceRule,
+  }) async {
+    final data = await _post('/api/events/$eventId', {
+      'title': title,
+      if (description != null) 'description': description,
+      if (channelId != null) 'channelId': channelId,
+      if (location != null) 'location': location,
+      if (coverUrl != null) 'coverUrl': coverUrl,
+      'startTime': startTime.toIso8601String(),
+      if (endTime != null) 'endTime': endTime.toIso8601String(),
+      'isRecurring': isRecurring,
+      if (recurrenceRule != null) 'recurrenceRule': recurrenceRule,
+    });
+    return data['event'] as Map<String, dynamic>;
+  }
 
   static Future<void> rsvpEvent(String eventId, String status) =>
       _post('/api/events/$eventId/rsvp', {'status': status});

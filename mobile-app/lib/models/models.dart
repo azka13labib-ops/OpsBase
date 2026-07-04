@@ -91,8 +91,12 @@ class ModAction {
 
 class CommunityEvent {
   final String id;
+  final String? discordEventId;
   final String title;
   final String? description;
+  final String? channelId;
+  final String? location;
+  final String? coverUrl;
   final DateTime startTime;
   final DateTime? endTime;
   final bool isRecurring;
@@ -100,8 +104,12 @@ class CommunityEvent {
 
   CommunityEvent({
     required this.id,
+    this.discordEventId,
     required this.title,
     this.description,
+    this.channelId,
+    this.location,
+    this.coverUrl,
     required this.startTime,
     this.endTime,
     required this.isRecurring,
@@ -110,8 +118,12 @@ class CommunityEvent {
 
   factory CommunityEvent.fromJson(Map<String, dynamic> json) => CommunityEvent(
         id: json['id'],
+        discordEventId: json['discord_event_id'],
         title: json['title'],
         description: json['description'],
+        channelId: json['channel_id'],
+        location: json['location'],
+        coverUrl: json['cover_url'],
         startTime: DateTime.parse(json['start_time']),
         endTime: json['end_time'] != null ? DateTime.parse(json['end_time']) : null,
         isRecurring: json['is_recurring'] == true,

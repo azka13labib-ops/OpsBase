@@ -16,6 +16,7 @@ dependencies:
   http: ^1.2.1                  # Panggil REST API backend kita
   flutter_secure_storage: ^9.2.2 # Simpan access token dengan aman
   socket_io_client: ^2.0.3      # WebSocket untuk fitur Real-time
+  image_picker: ^1.1.2          # Pilih gambar dari galeri
 
   # Push Notification
   firebase_core: ^2.31.1
