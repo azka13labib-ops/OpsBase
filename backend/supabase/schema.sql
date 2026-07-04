@@ -31,6 +31,8 @@ create table if not exists events (
   title text not null,
   description text,
   channel_id text,
+  location text,
+  cover_url text,
   start_time timestamptz not null,
   end_time timestamptz,
   is_recurring boolean default false,

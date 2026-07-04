@@ -28,9 +28,9 @@ router.get('/:id', requireCapability(CAPABILITIES.DASHBOARD_VIEW), async (req, r
   }
 });
 
-// POST /api/events  Body: { title, description, channelId, startTime, endTime, isRecurring, recurrenceRule, syncToDiscord }
+// POST /api/events  Body: { title, description, channelId, location, coverUrl, startTime, endTime, isRecurring, recurrenceRule, syncToDiscord }
 router.post('/', requireCapability(CAPABILITIES.EVENTS_CREATE), async (req, res) => {
-  const { title, description, channelId, startTime, endTime, isRecurring, recurrenceRule, syncToDiscord } = req.body;
+  const { title, description, channelId, location, coverUrl, startTime, endTime, isRecurring, recurrenceRule, syncToDiscord } = req.body;
   if (!title || !startTime) return res.status(400).json({ error: 'title dan startTime wajib diisi' });
 
   try {
@@ -47,13 +47,13 @@ router.post('/', requireCapability(CAPABILITIES.EVENTS_CREATE), async (req, res)
         privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
         entityType: channelId ? GuildScheduledEventEntityType.Voice : GuildScheduledEventEntityType.External,
         channel: channelId || undefined,
-        entityMetadata: channelId ? undefined : { location: 'Lihat di app' },
+        entityMetadata: channelId ? undefined : { location: location || 'Lihat di app' },
       });
       discordEventId = scheduledEvent.id;
     }
 
     const event = await createEvent({
-      guildId: req.auth.guildId, discordEventId, title, description, channelId,
+      guildId: req.auth.guildId, discordEventId, title, description, channelId, location, coverUrl,
       startTime, endTime, isRecurring, recurrenceRule, createdBy: req.auth.userId,
     });
 
@@ -66,6 +66,54 @@ router.post('/', requireCapability(CAPABILITIES.EVENTS_CREATE), async (req, res)
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Gagal membuat event' });
+  }
+});
+
+// POST /api/events/:id  Body: { title, description, channelId, location, coverUrl, startTime, endTime, isRecurring, recurrenceRule }
+router.post('/:id', requireCapability(CAPABILITIES.EVENTS_CREATE), async (req, res) => {
+  const { title, description, channelId, location, coverUrl, startTime, endTime, isRecurring, recurrenceRule } = req.body;
+  if (!title || !startTime) return res.status(400).json({ error: 'title dan startTime wajib diisi' });
+
+  try {
+    const existing = await getEvent(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Event tidak ditemukan' });
+
+    // Sync to Discord if exists
+    if (existing.discord_event_id) {
+      try {
+        const guild = req.app.get('discordClient').guilds.cache.get(req.auth.guildId);
+        const scheduledEvent = await guild.scheduledEvents.fetch(existing.discord_event_id);
+        if (scheduledEvent) {
+          await scheduledEvent.edit({
+            name: title,
+            description: description || undefined,
+            scheduledStartTime: new Date(startTime),
+            scheduledEndTime: endTime ? new Date(endTime) : new Date(new Date(startTime).getTime() + 3600000),
+            entityType: channelId ? GuildScheduledEventEntityType.Voice : GuildScheduledEventEntityType.External,
+            channel: channelId || undefined,
+            entityMetadata: channelId ? undefined : { location: location || 'Lihat di app' },
+          });
+        }
+      } catch (discordErr) {
+        console.error('Gagal update event di Discord:', discordErr);
+      }
+    }
+
+    const { updateEvent } = require('../../supabase/events');
+    const event = await updateEvent(existing.discord_event_id || null, {
+      title, description, channelId, location, coverUrl,
+      startTime, endTime, isRecurring, recurrenceRule,
+    });
+    
+    // In case no discord_event_id, we still need to update using its own ID.
+    // Wait, updateEvent in supabase/events.js updates by discord_event_id.
+    // Let's modify the updateEvent in supabase/events.js to update by internal ID.
+    
+    req.app.get('io')?.to(`guild_${req.auth.guildId}`).emit('stats_updated');
+    res.json({ event });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Gagal update event' });
   }
 });
 

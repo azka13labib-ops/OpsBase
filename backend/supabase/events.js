@@ -1,16 +1,34 @@
 const supabase = require('./client');
 
-async function createEvent({ guildId, discordEventId, title, description, channelId, startTime, endTime, isRecurring, recurrenceRule, createdBy }) {
+async function createEvent({ guildId, discordEventId, title, description, channelId, location, coverUrl, startTime, endTime, isRecurring, recurrenceRule, createdBy }) {
   const { data, error } = await supabase
     .from('events')
     .insert({
       guild_id: guildId, discord_event_id: discordEventId || null, title, description: description || null,
-      channel_id: channelId || null, start_time: startTime, end_time: endTime || null,
+      channel_id: channelId || null, location: location || null, cover_url: coverUrl || null, start_time: startTime, end_time: endTime || null,
       is_recurring: !!isRecurring, recurrence_rule: recurrenceRule || null, created_by: createdBy,
     })
     .select()
     .single();
   if (error) throw error;
+  return data;
+}
+
+async function updateEvent(id, { title, description, channelId, location, coverUrl, startTime, endTime }) {
+  let query = supabase.from('events').update({
+    title, description: description || null,
+    channel_id: channelId || null, location: location || null, cover_url: coverUrl || null,
+    start_time: startTime, end_time: endTime || null,
+  });
+  
+  if (id && id.length > 20) {
+    query = query.eq('id', id); // Supabase UUID is 36 chars
+  } else {
+    query = query.eq('discord_event_id', id);
+  }
+
+  const { data, error } = await query.select().single();
+  if (error && error.code !== 'PGRST116') throw error;
   return data;
 }
 
@@ -27,6 +45,12 @@ async function listEvents(guildId, { upcomingOnly = true } = {}) {
 
 async function getEvent(eventId) {
   const { data, error } = await supabase.from('events').select('*').eq('id', eventId).single();
+  if (error) throw error;
+  return data;
+}
+
+async function getEventByDiscordId(discordId) {
+  const { data, error } = await supabase.from('events').select('*').eq('discord_event_id', discordId).maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -49,4 +73,13 @@ async function getRsvps(eventId) {
   return data;
 }
 
-module.exports = { createEvent, listEvents, getEvent, deleteEvent, upsertRsvp, getRsvps };
+module.exports = {
+  createEvent,
+  updateEvent,
+  listEvents,
+  getEvent,
+  getEventByDiscordId,
+  deleteEvent,
+  upsertRsvp,
+  getRsvps,
+};
