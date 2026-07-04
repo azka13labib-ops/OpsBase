@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../config.dart';
 
@@ -20,7 +21,7 @@ class SocketService {
     _socket!.connect();
 
     _socket!.onConnect((_) {
-      print('Terhubung ke WebSockets Server');
+      debugPrint('Terhubung ke WebSockets Server');
       _socket!.emit('join_guild', guildId);
     });
 
@@ -30,7 +31,7 @@ class SocketService {
       }
     });
 
-    _socket!.onDisconnect((_) => print('Terputus dari WebSockets Server'));
+    _socket!.onDisconnect((_) => debugPrint('Terputus dari WebSockets Server'));
   }
 
   void addStatsListener(Function callback) {

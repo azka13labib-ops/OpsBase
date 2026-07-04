@@ -13,6 +13,17 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
+BoxDecoration _antigravityBoxDecoration(BuildContext context) {
+  return BoxDecoration(
+    color: Theme.of(context).cardColor,
+    borderRadius: BorderRadius.circular(24),
+    border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
+    boxShadow: [
+      BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 24, offset: const Offset(0, 8)),
+    ],
+  );
+}
+
 class _DashboardScreenState extends State<DashboardScreen> {
   late Future<DashboardStats> _statsFuture;
 
@@ -51,8 +62,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
-      body: RefreshIndicator(
+      body: SafeArea(
+        child: RefreshIndicator(
         onRefresh: _refresh,
         child: FutureBuilder<DashboardStats>(
           future: _statsFuture,
@@ -65,51 +76,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
             final stats = snapshot.data!;
             return ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               children: [
+                const SizedBox(height: 12),
+                Text('Overview', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ?? const Color(0xFF1D1D1F), fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+                const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(child: _StatCard(icon: Icons.people, label: 'Member', value: '${stats.memberCount}')),
-                    const SizedBox(width: 12),
-                    Expanded(child: _StatCard(icon: Icons.circle, iconColor: Colors.green, label: 'Online', value: '${stats.onlineCount}')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _StatCard(icon: Icons.circle, label: 'Online', value: '${stats.onlineCount}')),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
                 Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
-                  ),
+                  padding: const EdgeInsets.all(24),
+                  decoration: _antigravityBoxDecoration(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Statistik Server', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54)),
-                      const SizedBox(height: 16),
+                      const Text('STATISTIK SERVER', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF86868B), letterSpacing: 1.2)),
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _MiniStat(icon: Icons.chat_bubble_outline, value: '${stats.textChannelCount}', label: 'Teks'),
-                          _MiniStat(icon: Icons.mic_none, value: '${stats.voiceChannelCount}', label: 'Channel'),
+                          _MiniStat(icon: Icons.mic_none, value: '${stats.voiceChannelCount}', label: 'Voice'),
                           _MiniStat(icon: Icons.shield_outlined, value: '${stats.roleCount}', label: 'Role'),
-                          _MiniStat(icon: Icons.diamond_outlined, iconColor: Colors.pinkAccent, value: '${stats.boostCount}', label: 'Boost'),
+                          _MiniStat(icon: Icons.diamond_outlined, value: '${stats.boostCount}', label: 'Boost'),
                         ],
                       ),
-                      const Divider(height: 24),
+                      const Divider(height: 32, color: Colors.black12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _MiniStat(
                             icon: Icons.network_ping,
-                            iconColor: stats.botPing > 0 && stats.botPing < 100 ? Colors.green : Colors.orange,
                             value: stats.botPing > 0 ? '${stats.botPing} ms' : '-- ms',
                             label: 'Ping Bot',
                           ),
                           _MiniStat(
                             icon: Icons.event,
-                            iconColor: Colors.blueAccent,
                             value: '${stats.upcomingEventsCount}',
                             label: 'Event',
                           ),
@@ -118,20 +125,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                Text('Aktivitas Moderasi Terbaru', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
+                const SizedBox(height: 32),
+                const Padding(
+                  padding: EdgeInsets.only(left: 8, bottom: 12),
+                  child: Text('AKTIVITAS MODERASI TERBARU', style: TextStyle(color: Color(0xFF86868B), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                ),
                 if (stats.recentModActions.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(child: Text('Belum ada aktivitas', style: TextStyle(color: Colors.black38))),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    decoration: _antigravityBoxDecoration(context),
+                    child: const Center(child: Text('Belum ada aktivitas', style: TextStyle(color: Color(0xFF86868B)))),
                   )
                 else
-                  ...stats.recentModActions.map((a) => _ModActionTile(action: a)),
+                  Container(
+                    decoration: _antigravityBoxDecoration(context),
+                    child: Column(
+                      children: stats.recentModActions.asMap().entries.map((e) {
+                        final i = e.key;
+                        final a = e.value;
+                        return Column(
+                          children: [
+                            if (i > 0) Divider(height: 1, color: Colors.grey.withValues(alpha: 0.15), indent: 20, endIndent: 20),
+                            _ModActionTile(action: a),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
               ],
             );
           },
         ),
+      ),
       ),
     );
   }
@@ -139,37 +164,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 class _StatCard extends StatelessWidget {
   final IconData icon;
-  final Color? iconColor;
   final String label;
   final String value;
-  final String? subtitle;
-  final bool wide;
 
-  const _StatCard({required this.icon, this.iconColor, required this.label, required this.value, this.subtitle, this.wide = false});
+  const _StatCard({required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
-      ),
+      padding: const EdgeInsets.all(20),
+      decoration: _antigravityBoxDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: iconColor ?? Colors.black54, size: 20),
-          const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
-          Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12)),
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(subtitle!, style: const TextStyle(color: Colors.black38, fontSize: 12)),
-          ],
+          Icon(icon, color: const Color(0xFF86868B), size: 24),
+          const SizedBox(height: 12),
+          Text(value, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color ?? const Color(0xFF1D1D1F), letterSpacing: -0.5)),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(color: Color(0xFF86868B), fontSize: 13, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -183,11 +195,11 @@ class _ModActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(backgroundColor: const Color(0xFFF2F3F5), child: Text(action.emoji)),
-      title: Text('${action.targetTag ?? action.targetId} — ${action.actionType}', style: const TextStyle(color: Colors.black87)),
-      subtitle: Text('oleh ${action.moderatorTag}${action.reason != null ? " · ${action.reason}" : ""}', style: const TextStyle(color: Colors.black54)),
-      trailing: Text(DateFormat('HH:mm').format(action.createdAt), style: const TextStyle(color: Colors.black38, fontSize: 12)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      leading: CircleAvatar(backgroundColor: const Color(0xFFF5F5F7), child: Text(action.emoji)),
+      title: Text('${action.targetTag ?? action.targetId} — ${action.actionType}', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ?? const Color(0xFF1D1D1F), fontWeight: FontWeight.w500)),
+      subtitle: Text('oleh ${action.moderatorTag}${action.reason != null ? " · ${action.reason}" : ""}', style: const TextStyle(color: Color(0xFF86868B), fontSize: 13)),
+      trailing: Text(DateFormat('HH:mm').format(action.createdAt), style: const TextStyle(color: Color(0xFF86868B), fontSize: 12)),
     );
   }
 }
@@ -221,20 +233,19 @@ class _MiniStat extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
-  final Color? iconColor;
 
-  const _MiniStat({required this.icon, required this.value, required this.label, this.iconColor});
+  const _MiniStat({required this.icon, required this.value, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: iconColor ?? Colors.black54, size: 24),
+        Icon(icon, color: const Color(0xFF86868B), size: 24),
         const SizedBox(height: 8),
-        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
-        const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.black54)),
+        Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color ?? const Color(0xFF1D1D1F))),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF86868B), fontWeight: FontWeight.w500)),
       ],
     );
   }

@@ -42,22 +42,41 @@ class _EventsScreenState extends State<EventsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Event')),
-      floatingActionButton: FloatingActionButton(onPressed: _openCreateEvent, child: const Icon(Icons.add)),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<List<CommunityEvent>>(
-          future: _eventsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openCreateEvent,
+        icon: const Icon(Icons.add),
+        label: const Text('Buat Event'),
+      ),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _refresh,
+          child: FutureBuilder<List<CommunityEvent>>(
+            future: _eventsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
               return Center(child: Text('${snapshot.error}', style: const TextStyle(color: Colors.redAccent)));
             }
             final events = snapshot.data!;
             if (events.isEmpty) {
-              return const Center(child: Text('Belum ada event mendatang', style: TextStyle(color: Colors.black38)));
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.event_busy, size: 64, color: Colors.grey.shade300),
+                    const SizedBox(height: 16),
+                    const Text('Belum ada event mendatang',
+                        style: TextStyle(color: Colors.black54, fontSize: 16)),
+                    const SizedBox(height: 16),
+                    OutlinedButton(
+                      onPressed: _openCreateEvent,
+                      child: const Text('Buat Event Pertama'),
+                    ),
+                  ],
+                ),
+              );
             }
             return ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -66,6 +85,7 @@ class _EventsScreenState extends State<EventsScreen> {
             );
           },
         ),
+      ),
       ),
     );
   }
@@ -98,7 +118,7 @@ class _EventCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(

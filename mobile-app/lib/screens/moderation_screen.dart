@@ -58,13 +58,13 @@ class _ModerationScreenState extends State<ModerationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Moderasi')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openQuickAction,
         icon: const Icon(Icons.bolt),
         label: const Text('Aksi Cepat'),
       ),
-      body: RefreshIndicator(
+      body: SafeArea(
+        child: RefreshIndicator(
         onRefresh: _refresh,
         child: FutureBuilder<List<ModAction>>(
           future: _historyFuture,
@@ -77,7 +77,17 @@ class _ModerationScreenState extends State<ModerationScreen> {
             }
             final history = snapshot.data!;
             if (history.isEmpty) {
-              return const Center(child: Text('Belum ada riwayat moderasi', style: TextStyle(color: Colors.black38)));
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.shield_outlined, size: 64, color: Colors.grey.shade300),
+                    const SizedBox(height: 16),
+                    const Text('Belum ada riwayat moderasi',
+                        style: TextStyle(color: Colors.black54, fontSize: 16)),
+                  ],
+                ),
+              );
             }
             return ListView.separated(
               padding: const EdgeInsets.all(16),
@@ -87,7 +97,7 @@ class _ModerationScreenState extends State<ModerationScreen> {
                 final a = history[i];
                 return ListTile(
                   leading: CircleAvatar(backgroundColor: const Color(0xFFF2F3F5), child: Text(a.emoji)),
-                  title: Text('${a.targetTag ?? a.targetId}', style: const TextStyle(color: Colors.black87)),
+                  title: Text(a.targetTag ?? a.targetId, style: const TextStyle(color: Colors.black87)),
                   subtitle: Text(
                     '${a.actionType.toUpperCase()} oleh ${a.moderatorTag}${a.reason != null ? "\n${a.reason}" : ""}',
                     style: const TextStyle(color: Colors.black54),
@@ -99,6 +109,7 @@ class _ModerationScreenState extends State<ModerationScreen> {
             );
           },
         ),
+      ),
       ),
     );
   }

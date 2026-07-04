@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/auth_service.dart';
 import 'services/user_provider.dart';
+import 'services/preferences_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_shell.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -16,9 +17,16 @@ Future<void> main() async {
 
   await initializeDateFormatting('id_ID', null);
   await AuthService.init();
+  
+  final prefs = PreferencesProvider();
+  await prefs.init();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => UserProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider.value(value: prefs),
+      ],
       child: const CommunitySuiteApp(),
     ),
   );
@@ -29,17 +37,31 @@ class CommunitySuiteApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final prefs = context.watch<PreferencesProvider>();
     return MaterialApp(
       title: 'Community Suite',
       debugShowCheckedModeBanner: false,
+      themeMode: prefs.themeMode,
       theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF5865F2), // warna khas Discord "blurple"
+        colorSchemeSeed: const Color(0xFF5865F2),
         useMaterial3: true,
         brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: const Color(0xFFF5F5F7),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          backgroundColor: Color(0xFFF5F5F7),
+          foregroundColor: Color(0xFF1D1D1F),
+          elevation: 0,
+          centerTitle: true,
+        ),
+      ),
+      darkTheme: ThemeData(
+        colorSchemeSeed: const Color(0xFF5865F2),
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF121212),
+          foregroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
         ),
