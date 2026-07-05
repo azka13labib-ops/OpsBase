@@ -17,17 +17,17 @@ class ApiService {
   } 
 
   static Future<dynamic> _get(String path) async {
-    final res = await http.get(Uri.parse('$_baseUrl$path'), headers: _headers);
+    final res = await http.get(Uri.parse('$_baseUrl$path'), headers: _headers).timeout(const Duration(seconds: 10));
     return _handleResponse(res);
   }
 
   static Future<dynamic> _post(String path, Map<String, dynamic> body) async {
-    final res = await http.post(Uri.parse('$_baseUrl$path'), headers: _headers, body: jsonEncode(body));
+    final res = await http.post(Uri.parse('$_baseUrl$path'), headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 10));
     return _handleResponse(res);
   }
 
   static Future<dynamic> _delete(String path) async {
-    final res = await http.delete(Uri.parse('$_baseUrl$path'), headers: _headers);
+    final res = await http.delete(Uri.parse('$_baseUrl$path'), headers: _headers).timeout(const Duration(seconds: 10));
     return _handleResponse(res);
   }
 
