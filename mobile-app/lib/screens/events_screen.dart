@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/api_service.dart';
+import '../utils/localization.dart';
 import '../services/socket_service.dart';
 import '../services/user_provider.dart';
 import 'package:provider/provider.dart';
@@ -63,13 +64,14 @@ class _EventsScreenState extends State<EventsScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'event_fab',
         onPressed: _openEventWizard,
         backgroundColor: const Color(0xFF5865F2),
         foregroundColor: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         icon: const Icon(Icons.add),
-        label: const Text('Buat Event', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: Text(context.l10n.createEvent, style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: SafeArea(
         child: RefreshIndicator(

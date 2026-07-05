@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/push_service.dart';
 import '../services/user_provider.dart';
 import '../models/models.dart';
+import '../utils/localization.dart';
 import 'dashboard_screen.dart';
 import 'moderation_screen.dart';
 import 'events_screen.dart';
@@ -66,10 +67,10 @@ class _HomeShellState extends State<HomeShell> {
         final canManageEvents = userProvider.can(Capability.eventsCreate);
 
         final tabs = <_TabItem>[
-          _TabItem('Dashboard', Icons.dashboard_outlined, Icons.dashboard, const DashboardScreen()),
-          if (canModerate) _TabItem('Moderasi', Icons.shield_outlined, Icons.shield, const ModerationScreen()),
-          if (canManageEvents) _TabItem('Event', Icons.event_outlined, Icons.event, const EventsScreen()),
-          _TabItem('Pengaturan', Icons.settings_outlined, Icons.settings, const SettingsScreen()),
+          _TabItem(context.l10n.navDashboard, Icons.dashboard_outlined, Icons.dashboard, const DashboardScreen()),
+          if (canModerate) _TabItem(context.l10n.navModeration, Icons.shield_outlined, Icons.shield, const ModerationScreen()),
+          if (canManageEvents) _TabItem(context.l10n.navEvents, Icons.event_outlined, Icons.event, const EventsScreen()),
+          _TabItem(context.l10n.navSettings, Icons.settings_outlined, Icons.settings, const SettingsScreen()),
         ];
 
         final safeIndex = _index.clamp(0, tabs.length - 1);

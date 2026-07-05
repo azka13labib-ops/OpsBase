@@ -268,7 +268,7 @@ class _EventWizardScreenState extends State<EventWizardScreen> {
                             );
                           },
                         );
-                        if (date != null && mounted) {
+                        if (date != null && context.mounted) {
                           final time = await showTimePicker(
                             context: context, 
                             initialTime: TimeOfDay.fromDateTime(_startTime),
