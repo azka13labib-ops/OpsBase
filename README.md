@@ -1,6 +1,5 @@
 # Community Suite
 
-![Community Suite Banner](https://via.placeholder.com/1200x400/5865F2/FFFFFF?text=Community+Suite+-+Discord+Management+App)
 
 **Community Suite** adalah aplikasi seluler modern (berbasis Flutter) yang dirancang khusus untuk administrator dan moderator komunitas Discord. Aplikasi ini memungkinkan Anda mengelola server, memoderasi anggota, dan memantau statistik langsung dari genggaman Anda.
 
@@ -67,7 +66,6 @@
 *(Ganti tautan gambar di bawah ini dengan screenshot asli aplikasi Anda)*
 
 <div align="center">
-  <img src="assets/dashboard.png" width="200" alt="Dashboard">
   <img src="assets/moderation.png" width="200" alt="Moderation">
   <img src="assets/settings.png" width="200" alt="Settings">
 </div>
