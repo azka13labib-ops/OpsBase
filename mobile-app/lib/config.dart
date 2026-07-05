@@ -9,7 +9,7 @@ class AppConfig {
   // URL backend Express kita (yang punya bot token & eksekusi aksi Discord)
   // Saat development lokal pakai IP komputer kamu (bukan localhost) kalau
   // testing dari HP fisik, atau 10.0.2.2 kalau pakai Android Emulator.
-  static const backendApiUrl = 'http://172.31.90.201:3000';
+  static const backendApiUrl = 'http://127.0.0.1:3000';
   // contoh dev: 'http://10.0.2.2:3000'
 
   // Redirect URL untuk OAuth Discord — daftarkan juga di Supabase Auth settings
