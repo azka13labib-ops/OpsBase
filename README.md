@@ -24,7 +24,7 @@
 - **Localization**: Sistem lokalisasi internal yang ringan
 - **UI/UX**: Custom Material Design dengan palet warna ala Discord (`#5865F2`)
 
-### Backend & Layanan
+### Backend 
 - **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
 - **API**: Custom REST API / WebSockets
 - **Notifikasi**: Firebase Cloud Messaging (FCM) / Supabase Edge Functions
@@ -61,9 +61,7 @@
 
 ---
 
-## Tampilan Layar (Screenshots)
-
-*(Ganti tautan gambar di bawah ini dengan screenshot asli aplikasi Anda)*
+## Tampilan Layar 
 
 <div align="center">
   <img src="assets/moderation.png" width="200" alt="Moderation">
