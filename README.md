@@ -60,9 +60,8 @@
 
 ---
 
-## Tampilan Layar (Screenshots)
+## Tampilan Layar
 
-*(Ganti tautan gambar di bawah ini dengan screenshot asli aplikasi Anda)*
 
 <div align="center">
   <img src="https://via.placeholder.com/250x500/F4F5FB/5865F2?text=Dashboard" width="200" alt="Dashboard">
