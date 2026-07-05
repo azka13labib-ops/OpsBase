@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/user_provider.dart';
 import '../services/preferences_provider.dart';
+import '../utils/localization.dart';
 import 'edit_profile_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -17,11 +18,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Keluar?'),
+        title: Text(context.l10n.logout),
         content: const Text('Kamu perlu login ulang lewat Discord untuk masuk kembali.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Keluar')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l10n.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(context.l10n.logout)),
         ],
       ),
     );
@@ -58,6 +59,101 @@ class _SettingsScreenState extends State<SettingsScreen> {
       onTap: onTap ?? () {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fitur ini akan segera hadir!')));
       },
+    );
+  }
+
+  void _showLanguagePicker(BuildContext context, PreferencesProvider prefs) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.language,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              _buildOption(context, prefs.language == 'id', context.l10n.languageId, () { prefs.setLanguage('id'); Navigator.pop(context); }),
+              const SizedBox(height: 12),
+              _buildOption(context, prefs.language == 'en', context.l10n.languageEn, () { prefs.setLanguage('en'); Navigator.pop(context); }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showThemePicker(BuildContext context, PreferencesProvider prefs) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.theme,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              _buildOption(context, !prefs.isDarkMode, context.l10n.themeLight, () { prefs.setDarkMode(false); Navigator.pop(context); }),
+              const SizedBox(height: 12),
+              _buildOption(context, prefs.isDarkMode, context.l10n.themeDark, () { prefs.setDarkMode(true); Navigator.pop(context); }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOption(BuildContext context, bool isSelected, String name, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF5865F2).withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF5865F2) : Colors.grey.withValues(alpha: 0.2),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                name,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? const Color(0xFF5865F2) : Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+            ),
+            if (isSelected)
+              const Icon(Icons.check_circle_rounded, color: Color(0xFF5865F2)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -115,27 +211,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 32),
-          const Padding(
-            padding: EdgeInsets.only(left: 8, bottom: 12),
-            child: Text('AKUN', style: TextStyle(color: Color(0xFF86868B), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 12),
+            child: Text(context.l10n.profileSection, style: const TextStyle(color: Color(0xFF86868B), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
           ),
           Container(
             decoration: _boxDecoration(),
             child: Column(
               children: [
-                _buildListTile(context, Icons.person_outline, 'Edit Profil', subtitle: 'Ubah bio dan foto profil', onTap: () async {
+                _buildListTile(context, Icons.person_outline, context.l10n.editProfile, subtitle: context.l10n.editProfileSub, onTap: () async {
                   final changed = await Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
                   if (changed == true) setState(() {});
                 }),
                 _buildDivider(),
-                _buildListTile(context, Icons.link, 'Akun Terhubung', subtitle: 'Discord'),
+                _buildListTile(context, Icons.link, context.l10n.connectedAccounts, subtitle: 'Discord'),
               ],
             ),
           ),
           const SizedBox(height: 32),
-          const Padding(
-            padding: EdgeInsets.only(left: 8, bottom: 12),
-            child: Text('PREFERENSI', style: TextStyle(color: Color(0xFF86868B), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 12),
+            child: Text(context.l10n.preferencesSection, style: const TextStyle(color: Color(0xFF86868B), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
           ),
           Container(
             decoration: _boxDecoration(),
@@ -144,45 +240,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                   leading: Icon(Icons.notifications_outlined, color: Theme.of(context).textTheme.bodyLarge?.color ?? const Color(0xFF1D1D1F)),
-                  title: Text('Notifikasi', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ?? const Color(0xFF1D1D1F), fontWeight: FontWeight.w500)),
-                  subtitle: const Text('Push notification aktif otomatis', style: TextStyle(color: Color(0xFF86868B), fontSize: 13)),
+                  title: Text(context.l10n.notifications, style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ?? const Color(0xFF1D1D1F), fontWeight: FontWeight.w500)),
+                  subtitle: Text(context.l10n.notificationsSub, style: const TextStyle(color: Color(0xFF86868B), fontSize: 13)),
                   trailing: const Icon(Icons.chevron_right, color: Color(0xFF86868B), size: 20),
                 ),
                 _buildDivider(),
-                _buildListTile(context, Icons.language, 'Bahasa', subtitle: prefs.language == 'id' ? 'Indonesia' : 'English', onTap: () {
-                  showModalBottomSheet(context: context, builder: (_) => SafeArea(child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListTile(title: const Text('Indonesia'), trailing: prefs.language == 'id' ? const Icon(Icons.check) : null, onTap: () { prefs.setLanguage('id'); Navigator.pop(context); }),
-                      ListTile(title: const Text('English'), trailing: prefs.language == 'en' ? const Icon(Icons.check) : null, onTap: () { prefs.setLanguage('en'); Navigator.pop(context); }),
-                    ],
-                  )));
-                }),
+                _buildListTile(context, Icons.language, context.l10n.language, subtitle: prefs.language == 'id' ? context.l10n.languageId : context.l10n.languageEn, onTap: () => _showLanguagePicker(context, prefs)),
                 _buildDivider(),
-                _buildListTile(context, Icons.dark_mode_outlined, 'Tema', subtitle: prefs.isDarkMode ? 'Gelap' : 'Terang', onTap: () {
-                  showModalBottomSheet(context: context, builder: (_) => SafeArea(child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListTile(title: const Text('Terang'), trailing: !prefs.isDarkMode ? const Icon(Icons.check) : null, onTap: () { prefs.setDarkMode(false); Navigator.pop(context); }),
-                      ListTile(title: const Text('Gelap'), trailing: prefs.isDarkMode ? const Icon(Icons.check) : null, onTap: () { prefs.setDarkMode(true); Navigator.pop(context); }),
-                    ],
-                  )));
-                }),
+                _buildListTile(context, Icons.dark_mode_outlined, context.l10n.theme, subtitle: prefs.isDarkMode ? context.l10n.themeDark : context.l10n.themeLight, onTap: () => _showThemePicker(context, prefs)),
               ],
             ),
           ),
           const SizedBox(height: 32),
-          const Padding(
-            padding: EdgeInsets.only(left: 8, bottom: 12),
-            child: Text('DUKUNGAN', style: TextStyle(color: Color(0xFF86868B), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 12),
+            child: Text(context.l10n.supportSection, style: const TextStyle(color: Color(0xFF86868B), fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
           ),
           Container(
             decoration: _boxDecoration(),
             child: Column(
               children: [
-                _buildListTile(context, Icons.help_outline, 'Pusat Bantuan'),
+                _buildListTile(context, Icons.help_outline, context.l10n.helpCenter),
                 _buildDivider(),
-                _buildListTile(context, Icons.info_outline, 'Tentang Aplikasi', subtitle: 'Versi 1.0.0', onTap: () {
+                _buildListTile(context, Icons.info_outline, context.l10n.aboutApp, subtitle: '${context.l10n.aboutAppSub} 1.0.0', onTap: () {
                   showAboutDialog(
                     context: context,
                     applicationName: 'Community Suite',
@@ -199,7 +279,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: const Text('Keluar dari Akun', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w500)),
+              title: Text(context.l10n.logout, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w500)),
               onTap: () => _logout(context),
             ),
           ),
