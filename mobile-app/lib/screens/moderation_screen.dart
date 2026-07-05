@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
+import '../utils/localization.dart';
 import '../services/user_provider.dart';
 import '../services/socket_service.dart';
 import '../models/models.dart';
@@ -51,8 +52,8 @@ class _ModerationScreenState extends State<ModerationScreen> {
   void _openQuickAction() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => const _QuickActionSheet(),
     ).then((_) => _refresh());
   }
@@ -61,9 +62,10 @@ class _ModerationScreenState extends State<ModerationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'mod_fab',
         onPressed: _openQuickAction,
         icon: const Icon(Icons.bolt),
-        label: const Text('Aksi Cepat'),
+        label: Text(context.l10n.quickAction),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -85,8 +87,8 @@ class _ModerationScreenState extends State<ModerationScreen> {
                   children: [
                     Icon(Icons.shield_outlined, size: 64, color: Colors.grey.shade300),
                     const SizedBox(height: 16),
-                    const Text('Belum ada riwayat moderasi',
-                        style: TextStyle(color: Colors.black54, fontSize: 16)),
+                    Text(context.l10n.noModHistory,
+                        style: const TextStyle(color: Colors.black54, fontSize: 16)),
                   ],
                 ),
               );
@@ -97,11 +99,40 @@ class _ModerationScreenState extends State<ModerationScreen> {
               separatorBuilder: (_, __) => const Divider(color: Colors.black12, height: 1),
               itemBuilder: (context, i) {
                 final a = history[i];
+                IconData iconData;
+                Color iconColor;
+                Color bgColor;
+                switch (a.actionType.toLowerCase()) {
+                  case 'warn':
+                    iconData = Icons.warning_amber_rounded;
+                    iconColor = Colors.orange;
+                    bgColor = Colors.orange.shade50;
+                    break;
+                  case 'kick':
+                    iconData = Icons.person_remove_rounded;
+                    iconColor = Colors.red;
+                    bgColor = Colors.red.shade50;
+                    break;
+                  case 'ban':
+                    iconData = Icons.gavel_rounded;
+                    iconColor = const Color(0xFFF62440);
+                    bgColor = const Color(0xFFF62440).withValues(alpha: 0.1);
+                    break;
+                  case 'mute':
+                    iconData = Icons.volume_off_rounded;
+                    iconColor = Colors.blueGrey;
+                    bgColor = Colors.blueGrey.shade50;
+                    break;
+                  default:
+                    iconData = Icons.info_outline_rounded;
+                    iconColor = Colors.grey;
+                    bgColor = Colors.grey.shade50;
+                }
                 return ListTile(
-                  leading: CircleAvatar(backgroundColor: const Color(0xFFF2F3F5), child: Text(a.emoji)),
+                  leading: CircleAvatar(backgroundColor: bgColor, child: Icon(iconData, color: iconColor, size: 20)),
                   title: Text(a.targetTag ?? a.targetId, style: const TextStyle(color: Colors.black87)),
                   subtitle: Text(
-                    '${a.actionType.toUpperCase()} oleh ${a.moderatorTag}${a.reason != null ? "\n${a.reason}" : ""}',
+                    '${a.actionType.toUpperCase()} ${context.l10n.by} ${a.moderatorTag}${a.reason != null ? "\n${a.reason}" : ""}',
                     style: const TextStyle(color: Colors.black54),
                   ),
                   isThreeLine: a.reason != null,
@@ -158,7 +189,7 @@ class _QuickActionSheetState extends State<_QuickActionSheet> {
 
   Future<void> _submit() async {
     if (_userIdController.text.trim().isEmpty) {
-      setState(() => _error = 'User ID wajib diisi');
+      setState(() => _error = context.l10n.userIdRequired);
       return;
     }
     setState(() {
@@ -170,7 +201,7 @@ class _QuickActionSheetState extends State<_QuickActionSheet> {
       final reason = _reasonController.text.trim();
       switch (_action) {
         case 'warn':
-          await ApiService.warnUser(userId, userId, reason.isEmpty ? 'Tidak ada alasan' : reason);
+          await ApiService.warnUser(userId, userId, reason.isEmpty ? context.l10n.noReason : reason);
           break;
         case 'kick':
           await ApiService.kickUser(userId, reason: reason.isEmpty ? null : reason);
@@ -192,48 +223,130 @@ class _QuickActionSheetState extends State<_QuickActionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    Color currentActionColor;
+    switch (_action) {
+      case 'warn': currentActionColor = Colors.orange; break;
+      case 'kick': currentActionColor = Colors.red; break;
+      case 'ban': currentActionColor = const Color(0xFFF62440); break;
+      case 'mute': currentActionColor = Colors.blueGrey; break;
+      default: currentActionColor = const Color(0xFF5865F2);
+    }
+
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 20, right: 20, top: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Aksi Moderasi Cepat', style: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            children: _availableActions(context).map((a) {
-              return ChoiceChip(
-                label: Text(a.toUpperCase()),
-                selected: _action == a,
-                onSelected: (_) => setState(() => _action = a),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _userIdController,
-            decoration: const InputDecoration(labelText: 'User ID (Discord)', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _reasonController,
-            decoration: const InputDecoration(labelText: 'Alasan', border: OutlineInputBorder()),
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(_error!, style: const TextStyle(color: Colors.redAccent)),
-          ],
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: _loading ? null : _submit,
-              child: _loading ? const CircularProgressIndicator() : Text('Jalankan ${_action.toUpperCase()}'),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-        ],
+            const SizedBox(height: 24),
+            Text(context.l10n.quickAction, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: _availableActions(context).map((a) {
+                final isSelected = _action == a;
+                Color actionColor;
+                switch (a) {
+                  case 'warn': actionColor = Colors.orange; break;
+                  case 'kick': actionColor = Colors.red; break;
+                  case 'ban': actionColor = const Color(0xFFF62440); break;
+                  case 'mute': actionColor = Colors.blueGrey; break;
+                  default: actionColor = const Color(0xFF5865F2);
+                }
+                
+                return InkWell(
+                  onTap: () => setState(() => _action = a),
+                  borderRadius: BorderRadius.circular(12),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? actionColor.withValues(alpha: 0.1) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? actionColor : Colors.grey.withValues(alpha: 0.2),
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                    child: Text(
+                      a.toUpperCase(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? actionColor : Colors.black54,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+            TextField(
+              controller: _userIdController,
+              decoration: InputDecoration(
+                labelText: context.l10n.userId,
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: currentActionColor, width: 2)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _reasonController,
+              decoration: InputDecoration(
+                labelText: 'Alasan',
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: currentActionColor, width: 2)),
+              ),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_error!, style: const TextStyle(color: Colors.red))),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: currentActionColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: _loading ? null : _submit,
+                child: _loading 
+                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                    : Text('Jalankan ${_action.toUpperCase()}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }
