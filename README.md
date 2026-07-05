@@ -23,7 +23,6 @@
 - **Framework**: [Flutter](https://flutter.dev/)
 - **State Management**: Provider
 - **Localization**: Sistem lokalisasi internal yang ringan
-- **UI/UX**: Custom Material Design dengan palet warna ala Discord (`#5865F2`)
 
 ### Backend & Layanan
 - **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
