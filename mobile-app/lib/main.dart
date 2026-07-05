@@ -11,7 +11,7 @@ import 'package:intl/date_symbol_data_local.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // TODO: sebelum production, tambahkan Firebase.initializeApp() di sini
+  // Sebelum production, tambahkan Firebase.initializeApp() di sini
   // setelah file google-services.json / GoogleService-Info.plist ditambahkan.
   // Lihat: https://firebase.google.com/docs/flutter/setup
 
