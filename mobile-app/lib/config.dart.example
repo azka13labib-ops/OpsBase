@@ -1,0 +1,30 @@
+/// Template konfigurasi aplikasi Community Suite.
+///
+/// Salin file ini ke config.dart dan isi nilainya, JANGAN commit config.dart ke Git.
+/// Semua nilai dioper lewat --dart-define saat build atau flutter run.
+///
+/// Contoh perintah flutter run lengkap:
+///
+///   flutter run \
+///     --dart-define=SUPABASE_URL=https://xxxxx.supabase.co \
+///     --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... \
+///     --dart-define=BACKEND_API_URL=http://127.0.0.1:3000 \
+///     --dart-define=SUPPORT_WHATSAPP=6281234567890
+///
+/// Catatan:
+/// - Dapatkan SUPABASE_URL dan SUPABASE_ANON_KEY dari Supabase Dashboard → Settings → API
+/// - BACKEND_API_URL default ke http://127.0.0.1:3000 jika tidak diisi
+/// - SUPPORT_WHATSAPP format internasional tanpa '+' (contoh: 6281234567890)
+class AppConfig {
+  static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  static const backendApiUrl = String.fromEnvironment(
+    'BACKEND_API_URL',
+    defaultValue: 'http://127.0.0.1:3000',
+  );
+  static const oauthRedirectUrl = 'com.komunitas.suite://login-callback';
+  static const supportWhatsApp = String.fromEnvironment(
+    'SUPPORT_WHATSAPP',
+    defaultValue: '6283155761573',
+  );
+}

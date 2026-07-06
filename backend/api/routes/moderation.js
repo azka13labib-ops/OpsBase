@@ -31,6 +31,8 @@ router.get('/warnings/:userId', requireCapability(CAPABILITIES.DASHBOARD_VIEW), 
 router.post('/warn', requireCapability(CAPABILITIES.MODERATE_WARN), async (req, res) => {
   const { userId, userTag, reason } = req.body;
   if (!userId || !reason) return res.status(400).json({ error: 'userId dan reason wajib diisi' });
+  if (!/^\d{17,20}$/.test(userId)) return res.status(400).json({ error: 'Format userId tidak valid' });
+  if (reason.length > 1000) return res.status(400).json({ error: 'Reason terlalu panjang (maks 1000 karakter)' });
 
   try {
     const warning = await addWarning(req.auth.guildId, userId, reason, req.auth.userId);
@@ -49,6 +51,8 @@ router.post('/warn', requireCapability(CAPABILITIES.MODERATE_WARN), async (req, 
 router.post('/kick', requireCapability(CAPABILITIES.MODERATE_KICK), async (req, res) => {
   const { userId, reason } = req.body;
   if (!userId) return res.status(400).json({ error: 'userId wajib diisi' });
+  if (!/^\d{17,20}$/.test(userId)) return res.status(400).json({ error: 'Format userId tidak valid' });
+  if (reason && reason.length > 1000) return res.status(400).json({ error: 'Reason terlalu panjang (maks 1000 karakter)' });
 
   try {
     const guild = req.app.get('discordClient').guilds.cache.get(req.auth.guildId);
@@ -73,6 +77,8 @@ router.post('/kick', requireCapability(CAPABILITIES.MODERATE_KICK), async (req, 
 router.post('/ban', requireCapability(CAPABILITIES.MODERATE_BAN), async (req, res) => {
   const { userId, reason, deleteMessageDays = 0 } = req.body;
   if (!userId) return res.status(400).json({ error: 'userId wajib diisi' });
+  if (!/^\d{17,20}$/.test(userId)) return res.status(400).json({ error: 'Format userId tidak valid' });
+  if (reason && reason.length > 1000) return res.status(400).json({ error: 'Reason terlalu panjang (maks 1000 karakter)' });
 
   try {
     const guild = req.app.get('discordClient').guilds.cache.get(req.auth.guildId);
@@ -95,6 +101,8 @@ router.post('/ban', requireCapability(CAPABILITIES.MODERATE_BAN), async (req, re
 router.post('/mute', requireCapability(CAPABILITIES.MODERATE_MUTE), async (req, res) => {
   const { userId, durationMs, reason } = req.body;
   if (!userId || !durationMs) return res.status(400).json({ error: 'userId dan durationMs wajib diisi' });
+  if (!/^\d{17,20}$/.test(userId)) return res.status(400).json({ error: 'Format userId tidak valid' });
+  if (reason && reason.length > 1000) return res.status(400).json({ error: 'Reason terlalu panjang (maks 1000 karakter)' });
   if (durationMs > 28 * 86400000) return res.status(400).json({ error: 'Durasi maksimal 28 hari' });
 
   try {

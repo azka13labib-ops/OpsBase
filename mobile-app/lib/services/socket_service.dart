@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config.dart';
 
 class SocketService {
@@ -13,9 +14,15 @@ class SocketService {
   void init(String guildId) {
     if (_socket != null) return;
 
+    final session = Supabase.instance.client.auth.currentSession;
+    final token = session?.accessToken;
+
     _socket = io.io(AppConfig.backendApiUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
+      'auth': {
+        'token': token,
+      }
     });
 
     _socket!.connect();

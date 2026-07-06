@@ -41,7 +41,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _refresh() async {
-    setState(() => _statsFuture = _load());
+    setState(() {
+      _statsFuture = _load();
+    });
     await _statsFuture;
   }
 
@@ -203,7 +205,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         bgColor: const Color(0xFFF5EEF8),
                       ),
                       _StatCard(
-                        icon: Icons.diamond_rounded,
+                        icon: null,
+                        imageAsset: 'assets/images/boost_icon.png',
                         value: '${stats.boostCount}',
                         label: 'Boosts',
                         color: const Color(0xFFFF73FA),
@@ -310,14 +313,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 class _StatCard extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? imageAsset;
   final String label;
   final String value;
   final Color color;
   final Color bgColor;
 
   const _StatCard({
-    required this.icon,
+    this.icon,
+    this.imageAsset,
     required this.label,
     required this.value,
     required this.color,
@@ -340,12 +345,14 @@ class _StatCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            padding: const EdgeInsets.all(7),
+            padding: EdgeInsets.all(imageAsset != null ? 3 : 7),
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 18),
+            child: imageAsset != null 
+                ? Image.asset(imageAsset!, width: 26, height: 26, fit: BoxFit.contain)
+                : Icon(icon, color: color, size: 18),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
