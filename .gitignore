@@ -43,6 +43,7 @@ lib/generated_plugin_registrant.dart
 # Konfigurasi dengan credentials — jangan pernah di-commit
 # Salin dari config.dart.example dan isi nilai aslinya secara lokal
 mobile-app/lib/config.dart
+mobile-app/run_app.ps1
 
 *.pbxuser
 *.mode1v3
