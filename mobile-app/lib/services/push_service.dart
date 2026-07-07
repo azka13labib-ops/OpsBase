@@ -6,7 +6,8 @@ class PushService {
 
   /// Panggil ini setelah user berhasil login.
   static Future<void> initAndRegister() async {
-    print('PushService: Firebase belum disetup, push notification dinonaktifkan.');
+    print(
+        'PushService: Firebase belum disetup, push notification dinonaktifkan.');
     return;
     /*
     final settings = await _messaging.requestPermission(
@@ -33,7 +34,8 @@ class PushService {
   }
 
   /// Panggil di main() sebelum runApp, untuk handle notifikasi saat app di-background.
-  static void setupBackgroundHandler(Future<void> Function(RemoteMessage) handler) {
+  static void setupBackgroundHandler(
+      Future<void> Function(RemoteMessage) handler) {
     // FirebaseMessaging.onBackgroundMessage(handler);
   }
 

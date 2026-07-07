@@ -63,9 +63,21 @@ client.login(process.env.TOKEN).then(() => {
 
   client.on('guildMemberAdd', (member) => broadcastStats(member.guild.id));
   client.on('guildMemberRemove', (member) => broadcastStats(member.guild.id));
+  const presenceDebounceMap = new Map();
+
   client.on('presenceUpdate', (oldP, newP) => {
     if (!newP) return;
-    if (oldP?.status !== newP.status) broadcastStats(newP.guild.id);
+    if (oldP?.status !== newP.status) {
+      const guildId = newP.guild.id;
+      if (presenceDebounceMap.has(guildId)) {
+        clearTimeout(presenceDebounceMap.get(guildId));
+      }
+      const timeoutId = setTimeout(() => {
+        broadcastStats(guildId);
+        presenceDebounceMap.delete(guildId);
+      }, 3000);
+      presenceDebounceMap.set(guildId, timeoutId);
+    }
   });
   client.on('channelCreate', (channel) => broadcastStats(channel.guild.id));
   client.on('channelDelete', (channel) => broadcastStats(channel.guild.id));

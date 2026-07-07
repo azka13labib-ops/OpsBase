@@ -22,8 +22,10 @@ dependencies:
   firebase_core: ^2.31.1
   firebase_messaging: ^14.9.4
 
-  # State management ringan
+  # State management & utilities
   provider: ^6.1.2
+  connectivity_plus: ^6.0.3     # Cek status jaringan internet
+  shared_preferences: ^2.2.3    # Cache lokal API response
 
   # UI helper
   intl: ^0.19.0                 # Format tanggal/waktu (Indonesia)

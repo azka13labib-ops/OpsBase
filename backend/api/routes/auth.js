@@ -19,10 +19,20 @@ const router = express.Router();
  *    Backend tidak pernah menerbitkan token sendiri — cukup percaya Supabase.
  */
 
+const { logoutUser } = require('../middleware/requireAuth');
+
 // GET /api/auth/me — dipanggil app sekali setelah login untuk cek & simpan role
 router.get('/me', async (req, res) => {
   // req.auth diisi oleh middleware requireAuth (lihat api/middleware/requireAuth.js)
   res.json({ user: req.auth });
+});
+
+// POST /api/auth/logout — menghapus cache user dari backend
+router.post('/logout', (req, res) => {
+  if (req.auth && req.auth.userId) {
+    logoutUser(req.auth.userId);
+  }
+  res.json({ success: true, message: 'Logged out successfully' });
 });
 
 module.exports = router;

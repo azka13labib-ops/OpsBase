@@ -50,7 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     return const SizedBox(
                       height: 280,
                       child: Center(
-                        child: Icon(Icons.broken_image, size: 64, color: Colors.grey),
+                        child: Icon(Icons.broken_image,
+                            size: 64, color: Colors.grey),
                       ),
                     );
                   },
@@ -82,7 +83,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 48),
 
                 if (_error != null) ...[
-                  Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                  Text(_error!,
+                      style: const TextStyle(color: Colors.redAccent)),
                   const SizedBox(height: 16),
                 ],
 
@@ -93,7 +95,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton.icon(
                     onPressed: _loading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5865F2), // Discord Blurple
+                      backgroundColor:
+                          const Color(0xFF5865F2), // Discord Blurple
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -104,7 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
                         : const Icon(Icons.discord, size: 24),
                     label: const Text(
@@ -123,11 +127,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () async {
                     final Uri waUrl = Uri.parse('https://wa.me/6283155761573');
                     try {
-                      await launchUrl(waUrl, mode: LaunchMode.externalApplication);
+                      await launchUrl(waUrl,
+                          mode: LaunchMode.externalApplication);
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Tidak dapat membuka WhatsApp')),
+                          const SnackBar(
+                              content: Text('Tidak dapat membuka WhatsApp')),
                         );
                       }
                     }
@@ -141,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 48),
 
                 // Access Note

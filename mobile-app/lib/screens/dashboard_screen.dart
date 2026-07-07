@@ -18,7 +18,10 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   late Future<DashboardStats> _statsFuture;
 
   @override
@@ -54,6 +57,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final username = context.watch<UserProvider>().user?.username ?? 'User';
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5FB),
@@ -63,11 +67,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: FutureBuilder<DashboardStats>(
           future: _statsFuture,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator(color: _kPrimary));
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !snapshot.hasData) {
+              return const Center(
+                  child: CircularProgressIndicator(color: _kPrimary));
             }
             if (snapshot.hasError) {
-              return _ErrorState(message: '${snapshot.error}', onRetry: _refresh);
+              return _ErrorState(
+                  message: '${snapshot.error}', onRetry: _refresh);
             }
             final stats = snapshot.data!;
             return CustomScrollView(
@@ -81,7 +88,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+                      borderRadius:
+                          BorderRadius.vertical(bottom: Radius.circular(32)),
                     ),
                     child: SafeArea(
                       bottom: false,
@@ -119,7 +127,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 color: Colors.white.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: const Icon(Icons.dashboard_rounded, color: Colors.white, size: 26),
+                              child: const Icon(Icons.dashboard_rounded,
+                                  color: Colors.white, size: 26),
                             ),
                           ],
                         ),
@@ -147,7 +156,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                   sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 14,
                       mainAxisSpacing: 14,
@@ -190,7 +200,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
                   sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 14,
                       mainAxisSpacing: 14,
@@ -214,7 +225,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       _StatCard(
                         icon: Icons.speed_rounded,
-                        value: stats.botPing > 0 ? '${stats.botPing} ms' : '-- ms',
+                        value:
+                            stats.botPing > 0 ? '${stats.botPing} ms' : '-- ms',
                         label: 'Bot Ping',
                         color: const Color(0xFF1ABC9C),
                         bgColor: const Color(0xFFE8F8F5),
@@ -269,14 +281,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
-                                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 16, offset: const Offset(0, 4)),
+                                BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4)),
                               ],
                             ),
                             child: Column(
                               children: [
-                                Icon(Icons.shield_outlined, size: 40, color: Colors.grey.shade300),
+                                Icon(Icons.shield_outlined,
+                                    size: 40, color: Colors.grey.shade300),
                                 const SizedBox(height: 8),
-                                Text('Belum ada aktivitas', style: TextStyle(color: Colors.grey.shade400, fontSize: 14)),
+                                Text('Belum ada aktivitas',
+                                    style: TextStyle(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 14)),
                               ],
                             ),
                           )
@@ -285,16 +304,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
-                                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 16, offset: const Offset(0, 4)),
+                                BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4)),
                               ],
                             ),
                             child: Column(
-                              children: stats.recentModActions.asMap().entries.map((e) {
+                              children: stats.recentModActions
+                                  .asMap()
+                                  .entries
+                                  .map((e) {
                                 final i = e.key;
                                 final a = e.value;
                                 return Column(
                                   children: [
-                                    if (i > 0) Divider(height: 1, color: Colors.grey.withValues(alpha: 0.1), indent: 20, endIndent: 20),
+                                    if (i > 0)
+                                      Divider(
+                                          height: 1,
+                                          color: Colors.grey
+                                              .withValues(alpha: 0.1),
+                                          indent: 20,
+                                          endIndent: 20),
                                     _ModActionTile(action: a),
                                   ],
                                 );
@@ -337,7 +368,10 @@ class _StatCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 14, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 14,
+              offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -350,8 +384,9 @@ class _StatCard extends StatelessWidget {
               color: bgColor,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: imageAsset != null 
-                ? Image.asset(imageAsset!, width: 26, height: 26, fit: BoxFit.contain)
+            child: imageAsset != null
+                ? Image.asset(imageAsset!,
+                    width: 26, height: 26, fit: BoxFit.contain)
                 : Icon(icon, color: color, size: 18),
           ),
           Column(
@@ -368,7 +403,10 @@ class _StatCard extends StatelessWidget {
               ),
               Text(
                 label,
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade500,
+                    fontWeight: FontWeight.w500),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -461,13 +499,19 @@ class _ErrorState extends StatelessWidget {
                 color: Colors.red.shade50,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.error_outline, color: Colors.red, size: 36),
+              child:
+                  const Icon(Icons.error_outline, color: Colors.red, size: 36),
             ),
             const SizedBox(height: 16),
-            Text(message, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600)),
             const SizedBox(height: 20),
             FilledButton.icon(
-              style: FilledButton.styleFrom(backgroundColor: _kPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              style: FilledButton.styleFrom(
+                  backgroundColor: _kPrimary,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12))),
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: const Text('Coba Lagi'),

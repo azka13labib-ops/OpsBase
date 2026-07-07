@@ -6,7 +6,7 @@ const supabaseAuth = createClient(process.env.SUPABASE_URL, process.env.SUPABASE
 
 // Cache kapabilitas per user supaya tidak fetch member Discord di setiap request (5 menit)
 const authCache = new Map(); // userId -> { value, expiresAt }
-const AUTH_CACHE_TTL_MS = 5 * 60 * 1000;
+const AUTH_CACHE_TTL_MS = 60 * 1000; // 60 detik
 
 /**
  * Middleware: cek header Authorization: Bearer <supabase_access_token>,
@@ -72,4 +72,8 @@ async function requireAuth(req, res, next) {
   }
 }
 
-module.exports = { requireAuth };
+function logoutUser(discordUserId) {
+  authCache.delete(discordUserId);
+}
+
+module.exports = { requireAuth, logoutUser };

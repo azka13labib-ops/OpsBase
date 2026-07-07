@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Semua pemanggilan ke backend Express kita lewat class ini.
 /// Token diambil otomatis dari sesi Supabase yang sedang aktif.
@@ -14,20 +15,66 @@ class ApiService {
       'Content-Type': 'application/json',
       if (session != null) 'Authorization': 'Bearer ${session.accessToken}',
     };
-  } 
+  }
 
-  static Future<dynamic> _get(String path) async {
-    final res = await http.get(Uri.parse('$_baseUrl$path'), headers: _headers).timeout(const Duration(seconds: 10));
-    return _handleResponse(res);
+  static Future<dynamic> _get(String path, {int maxRetries = 3}) async {
+    final uri = Uri.parse('$_baseUrl$path');
+    int attempt = 0;
+
+    while (attempt <= maxRetries) {
+      try {
+        final res = await http
+            .get(uri, headers: _headers)
+            .timeout(const Duration(seconds: 10));
+
+        if (res.statusCode >= 500) {
+          throw Exception('Server error ${res.statusCode}');
+        }
+
+        final data = _handleResponse(res);
+
+        // Simpan cache
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('cache_$path', res.body);
+        } catch (_) {}
+
+        return data;
+      } catch (e) {
+        if (e is ApiException) rethrow; // Jangan retry error 400-499
+
+        attempt++;
+        if (attempt > maxRetries) {
+          // Coba fallback ke cache
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            final cached = prefs.getString('cache_$path');
+            if (cached != null) {
+              return jsonDecode(cached);
+            }
+          } catch (_) {}
+
+          throw ApiException(
+              'Gagal terhubung ke server setelah beberapa percobaan.', 0);
+        }
+        await Future.delayed(
+            Duration(seconds: 1 << attempt)); // backoff: 2s, 4s, 8s
+      }
+    }
   }
 
   static Future<dynamic> _post(String path, Map<String, dynamic> body) async {
-    final res = await http.post(Uri.parse('$_baseUrl$path'), headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 10));
+    final res = await http
+        .post(Uri.parse('$_baseUrl$path'),
+            headers: _headers, body: jsonEncode(body))
+        .timeout(const Duration(seconds: 10));
     return _handleResponse(res);
   }
 
   static Future<dynamic> _delete(String path) async {
-    final res = await http.delete(Uri.parse('$_baseUrl$path'), headers: _headers).timeout(const Duration(seconds: 10));
+    final res = await http
+        .delete(Uri.parse('$_baseUrl$path'), headers: _headers)
+        .timeout(const Duration(seconds: 10));
     return _handleResponse(res);
   }
 
@@ -52,22 +99,36 @@ class ApiService {
   }
 
   // ---------- Moderasi ----------
-  static Future<List<dynamic>> getModHistory({int limit = 50, int offset = 0}) async {
-    final data = await _get('/api/moderation/history?limit=$limit&offset=$offset');
+  static Future<List<dynamic>> getModHistory(
+      {int limit = 50, int offset = 0}) async {
+    final data =
+        await _get('/api/moderation/history?limit=$limit&offset=$offset');
     return data['history'] as List<dynamic>;
   }
 
   static Future<void> warnUser(String userId, String userTag, String reason) =>
-      _post('/api/moderation/warn', {'userId': userId, 'userTag': userTag, 'reason': reason});
+      _post('/api/moderation/warn',
+          {'userId': userId, 'userTag': userTag, 'reason': reason});
 
-  static Future<void> kickUser(String userId, {String? reason}) =>
-      _post('/api/moderation/kick', {'userId': userId, if (reason != null) 'reason': reason});
+  static Future<void> kickUser(String userId, {String? reason}) => _post(
+      '/api/moderation/kick',
+      {'userId': userId, if (reason != null) 'reason': reason});
 
-  static Future<void> banUser(String userId, {String? reason, int deleteMessageDays = 0}) =>
-      _post('/api/moderation/ban', {'userId': userId, if (reason != null) 'reason': reason, 'deleteMessageDays': deleteMessageDays});
+  static Future<void> banUser(String userId,
+          {String? reason, int deleteMessageDays = 0}) =>
+      _post('/api/moderation/ban', {
+        'userId': userId,
+        if (reason != null) 'reason': reason,
+        'deleteMessageDays': deleteMessageDays
+      });
 
-  static Future<void> muteUser(String userId, int durationMs, {String? reason}) =>
-      _post('/api/moderation/mute', {'userId': userId, 'durationMs': durationMs, if (reason != null) 'reason': reason});
+  static Future<void> muteUser(String userId, int durationMs,
+          {String? reason}) =>
+      _post('/api/moderation/mute', {
+        'userId': userId,
+        'durationMs': durationMs,
+        if (reason != null) 'reason': reason
+      });
 
   // ---------- Events ----------
   static Future<List<dynamic>> getEvents({bool upcoming = true}) async {
@@ -102,9 +163,11 @@ class ApiService {
     return data['event'] as Map<String, dynamic>;
   }
 
-  static Future<void> deleteEvent(String eventId) => _delete('/api/events/$eventId');
+  static Future<void> deleteEvent(String eventId) =>
+      _delete('/api/events/$eventId');
 
-  static Future<Map<String, dynamic>> updateEvent(String eventId, {
+  static Future<Map<String, dynamic>> updateEvent(
+    String eventId, {
     required String title,
     String? description,
     String? channelId,
@@ -133,8 +196,10 @@ class ApiService {
       _post('/api/events/$eventId/rsvp', {'status': status});
 
   // ---------- Devices (push notification) ----------
-  static Future<void> registerDevice(String fcmToken, {String platform = 'android'}) =>
-      _post('/api/devices/register', {'fcmToken': fcmToken, 'platform': platform});
+  static Future<void> registerDevice(String fcmToken,
+          {String platform = 'android'}) =>
+      _post('/api/devices/register',
+          {'fcmToken': fcmToken, 'platform': platform});
 }
 
 class ApiException implements Exception {
