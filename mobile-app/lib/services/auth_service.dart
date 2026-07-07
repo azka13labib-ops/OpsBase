@@ -13,7 +13,8 @@ class AuthService {
 
   static bool get isLoggedIn => _client.auth.currentSession != null;
 
-  static Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
+  static Stream<AuthState> get authStateChanges =>
+      _client.auth.onAuthStateChange;
 
   static User? get currentUser => _client.auth.currentUser;
 

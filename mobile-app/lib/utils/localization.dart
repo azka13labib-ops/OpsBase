@@ -28,12 +28,18 @@ class AppLocalizations {
   String get settingsTitle => locale == 'id' ? 'Pengaturan' : 'Settings';
   String get profileSection => locale == 'id' ? 'PROFIL' : 'PROFILE';
   String get editProfile => locale == 'id' ? 'Edit Profil' : 'Edit Profile';
-  String get editProfileSub => locale == 'id' ? 'Ubah bio dan foto profil' : 'Change bio and profile picture';
-  String get connectedAccounts => locale == 'id' ? 'Akun Terhubung' : 'Connected Accounts';
-  
-  String get preferencesSection => locale == 'id' ? 'PREFERENSI' : 'PREFERENCES';
+  String get editProfileSub => locale == 'id'
+      ? 'Ubah bio dan foto profil'
+      : 'Change bio and profile picture';
+  String get connectedAccounts =>
+      locale == 'id' ? 'Akun Terhubung' : 'Connected Accounts';
+
+  String get preferencesSection =>
+      locale == 'id' ? 'PREFERENSI' : 'PREFERENCES';
   String get notifications => locale == 'id' ? 'Notifikasi' : 'Notifications';
-  String get notificationsSub => locale == 'id' ? 'Push notification aktif otomatis' : 'Push notifications active automatically';
+  String get notificationsSub => locale == 'id'
+      ? 'Push notification aktif otomatis'
+      : 'Push notifications active automatically';
   String get language => locale == 'id' ? 'Bahasa' : 'Language';
   String get languageEn => 'English';
   String get languageId => 'Indonesia';
@@ -47,23 +53,31 @@ class AppLocalizations {
   String get aboutApp => locale == 'id' ? 'Tentang Aplikasi' : 'About App';
   String get aboutAppSub => locale == 'id' ? 'Versi' : 'Version';
   String get logout => locale == 'id' ? 'Keluar dari Akun' : 'Log Out';
-  
+
   // --- Dashboard Screen ---
   String get welcome => locale == 'id' ? 'Selamat datang' : 'Welcome';
-  String get serverStats => locale == 'id' ? 'Statistik Server' : 'Server Statistics';
+  String get serverStats =>
+      locale == 'id' ? 'Statistik Server' : 'Server Statistics';
   String get totalMembers => locale == 'id' ? 'Total Member' : 'Total Members';
-  String get activeMembers24h => locale == 'id' ? 'Member Aktif (24j)' : 'Active Members (24h)';
+  String get activeMembers24h =>
+      locale == 'id' ? 'Member Aktif (24j)' : 'Active Members (24h)';
   String get activeEvents => locale == 'id' ? 'Event Aktif' : 'Active Events';
   String get activeMutes => locale == 'id' ? 'Mute Aktif' : 'Active Mutes';
 
   // --- Moderation Screen ---
-  String get moderationHistory => locale == 'id' ? 'Riwayat Moderasi' : 'Moderation History';
+  String get moderationHistory =>
+      locale == 'id' ? 'Riwayat Moderasi' : 'Moderation History';
   String get quickAction => locale == 'id' ? 'Aksi Cepat' : 'Quick Action';
-  String get noModHistory => locale == 'id' ? 'Belum ada riwayat moderasi' : 'No moderation history yet';
+  String get noModHistory => locale == 'id'
+      ? 'Belum ada riwayat moderasi'
+      : 'No moderation history yet';
   String get by => locale == 'id' ? 'oleh' : 'by';
-  String get userIdRequired => locale == 'id' ? 'User ID wajib diisi' : 'User ID is required';
-  String get noReason => locale == 'id' ? 'Tidak ada alasan' : 'No reason provided';
-  String get userId => locale == 'id' ? 'User ID (Discord)' : 'User ID (Discord)';
+  String get userIdRequired =>
+      locale == 'id' ? 'User ID wajib diisi' : 'User ID is required';
+  String get noReason =>
+      locale == 'id' ? 'Tidak ada alasan' : 'No reason provided';
+  String get userId =>
+      locale == 'id' ? 'User ID (Discord)' : 'User ID (Discord)';
 
   // --- Events Screen ---
   String get eventList => locale == 'id' ? 'Daftar Event' : 'Event List';

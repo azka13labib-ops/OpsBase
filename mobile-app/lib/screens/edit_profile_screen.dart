@@ -17,7 +17,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     final user = AuthService.currentUser;
-    final currentName = user?.userMetadata?['full_name'] ?? user?.userMetadata?['name'] ?? '';
+    final currentName =
+        user?.userMetadata?['full_name'] ?? user?.userMetadata?['name'] ?? '';
     _nameController.text = currentName;
   }
 
@@ -37,12 +38,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         UserAttributes(data: {'full_name': newName}),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil berhasil diperbarui')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profil berhasil diperbarui')));
         Navigator.pop(context, true); // true indicates success/changed
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -60,12 +63,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          const Text('Nama Tampilan', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Nama Tampilan',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           TextField(
             controller: _nameController,
             decoration: InputDecoration(
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               filled: true,
               fillColor: Theme.of(context).cardColor,
             ),
@@ -74,10 +79,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           FilledButton(
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: _isLoading ? null : _save,
-            child: _isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Simpan Perubahan'),
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : const Text('Simpan Perubahan'),
           ),
         ],
       ),

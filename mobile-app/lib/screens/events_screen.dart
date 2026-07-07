@@ -15,7 +15,10 @@ class EventsScreen extends StatefulWidget {
   State<EventsScreen> createState() => _EventsScreenState();
 }
 
-class _EventsScreenState extends State<EventsScreen> {
+class _EventsScreenState extends State<EventsScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   late Future<List<CommunityEvent>> _eventsFuture;
 
   @override
@@ -53,7 +56,8 @@ class _EventsScreenState extends State<EventsScreen> {
   void _openEventWizard({CommunityEvent? existingEvent}) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => EventWizardScreen(existingEvent: existingEvent)),
+      MaterialPageRoute(
+          builder: (_) => EventWizardScreen(existingEvent: existingEvent)),
     ).then((modified) {
       if (modified == true) _refresh();
     });
@@ -61,6 +65,7 @@ class _EventsScreenState extends State<EventsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       floatingActionButton: FloatingActionButton.extended(
@@ -71,7 +76,8 @@ class _EventsScreenState extends State<EventsScreen> {
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         icon: const Icon(Icons.add),
-        label: Text(context.l10n.createEvent, style: const TextStyle(fontWeight: FontWeight.bold)),
+        label: Text(context.l10n.createEvent,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -80,11 +86,15 @@ class _EventsScreenState extends State<EventsScreen> {
           child: FutureBuilder<List<CommunityEvent>>(
             future: _eventsFuture,
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator(color: Color(0xFF5865F2)));
+              if (snapshot.connectionState == ConnectionState.waiting &&
+                  !snapshot.hasData) {
+                return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF5865F2)));
               }
               if (snapshot.hasError) {
-                return Center(child: Text('${snapshot.error}', style: const TextStyle(color: Colors.redAccent)));
+                return Center(
+                    child: Text('${snapshot.error}',
+                        style: const TextStyle(color: Colors.redAccent)));
               }
               final events = snapshot.data!;
               if (events.isEmpty) {
@@ -98,7 +108,8 @@ class _EventsScreenState extends State<EventsScreen> {
                           color: const Color(0xFF5865F2).withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.event_available, size: 80, color: Color(0xFF5865F2)),
+                        child: const Icon(Icons.event_available,
+                            size: 80, color: Color(0xFF5865F2)),
                       ),
                       const SizedBox(height: 24),
                       const Text(
@@ -121,11 +132,15 @@ class _EventsScreenState extends State<EventsScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF5865F2),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           elevation: 0,
                         ),
-                        child: const Text('Buat Event Pertama', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        child: const Text('Buat Event Pertama',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -148,13 +163,15 @@ class _EventsScreenState extends State<EventsScreen> {
                     ),
                   ),
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, i) => _EventCard(
                           event: events[i],
                           onChanged: _refresh,
-                          onEdit: () => _openEventWizard(existingEvent: events[i]),
+                          onEdit: () =>
+                              _openEventWizard(existingEvent: events[i]),
                         ),
                         childCount: events.length,
                       ),
@@ -174,7 +191,8 @@ class _EventCard extends StatelessWidget {
   final CommunityEvent event;
   final VoidCallback onChanged;
   final VoidCallback onEdit;
-  const _EventCard({required this.event, required this.onChanged, required this.onEdit});
+  const _EventCard(
+      {required this.event, required this.onChanged, required this.onEdit});
 
   Future<void> _delete(BuildContext context) async {
     final confirm = await showDialog<bool>(
@@ -183,12 +201,14 @@ class _EventCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 28),
+            Icon(Icons.warning_amber_rounded,
+                color: Colors.redAccent, size: 28),
             SizedBox(width: 8),
             Text('Hapus Event', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
-        content: Text('Apakah Anda yakin ingin menghapus event "${event.title}"? Tindakan ini tidak dapat dibatalkan.'),
+        content: Text(
+            'Apakah Anda yakin ingin menghapus event "${event.title}"? Tindakan ini tidak dapat dibatalkan.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -199,7 +219,8 @@ class _EventCard extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
             child: const Text('Hapus'),
@@ -214,24 +235,24 @@ class _EventCard extends StatelessWidget {
       await ApiService.deleteEvent(event.id);
       onChanged();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Event berhasil dihapus'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          )
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Event berhasil dihapus'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = DateFormat('EEEE, d MMM yyyy · HH:mm', 'id_ID').format(event.startTime);
+    final dateStr =
+        DateFormat('EEEE, d MMM yyyy · HH:mm', 'id_ID').format(event.startTime);
     const discordBlurple = Color(0xFF5865F2);
 
     return Container(
@@ -258,11 +279,12 @@ class _EventCard extends StatelessWidget {
                 event.coverUrl!,
                 height: 180,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildPlaceholderGradient(),
+                errorBuilder: (context, error, stackTrace) =>
+                    _buildPlaceholderGradient(),
               )
             else
               _buildPlaceholderGradient(),
-              
+
             // Content Body
             Padding(
               padding: const EdgeInsets.all(24),
@@ -287,7 +309,8 @@ class _EventCard extends StatelessWidget {
                       if (event.isRecurring)
                         const Padding(
                           padding: EdgeInsets.only(left: 8, top: 4),
-                          child: Icon(Icons.repeat, size: 20, color: discordBlurple),
+                          child: Icon(Icons.repeat,
+                              size: 20, color: discordBlurple),
                         ),
                       const SizedBox(width: 8),
                       // Options Menu
@@ -296,25 +319,34 @@ class _EventCard extends StatelessWidget {
                         height: 28,
                         child: PopupMenuButton<String>(
                           padding: EdgeInsets.zero,
-                          icon: const Icon(Icons.more_horiz, color: Colors.black54, size: 24),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          icon: const Icon(Icons.more_horiz,
+                              color: Colors.black54, size: 24),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           onSelected: (v) {
                             if (v == 'edit') onEdit();
                             if (v == 'delete') _delete(context);
                           },
                           itemBuilder: (_) => [
-                            const PopupMenuItem(value: 'edit', child: Text('Edit Event')),
-                            const PopupMenuItem(value: 'delete', child: Text('Hapus Event', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold))),
+                            const PopupMenuItem(
+                                value: 'edit', child: Text('Edit Event')),
+                            const PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Hapus Event',
+                                    style: TextStyle(
+                                        color: Colors.redAccent,
+                                        fontWeight: FontWeight.bold))),
                           ],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Time & Location Info
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade50,
                       borderRadius: BorderRadius.circular(12),
@@ -324,29 +356,38 @@ class _EventCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.calendar_today_rounded, size: 18, color: Colors.black54),
+                            const Icon(Icons.calendar_today_rounded,
+                                size: 18, color: Colors.black54),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 dateStr,
-                                style: const TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w600),
+                                style: const TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600),
                               ),
                             ),
                           ],
                         ),
-                        if (event.location != null && event.location!.isNotEmpty) ...[
+                        if (event.location != null &&
+                            event.location!.isNotEmpty) ...[
                           const Padding(
                             padding: EdgeInsets.symmetric(vertical: 8),
                             child: Divider(height: 1),
                           ),
                           Row(
                             children: [
-                              const Icon(Icons.location_on_rounded, size: 18, color: Colors.black54),
+                              const Icon(Icons.location_on_rounded,
+                                  size: 18, color: Colors.black54),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   event.location!,
-                                  style: const TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w500),
+                                  style: const TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500),
                                 ),
                               ),
                             ],
@@ -359,12 +400,16 @@ class _EventCard extends StatelessWidget {
                           ),
                           const Row(
                             children: [
-                              Icon(Icons.volume_up_rounded, size: 18, color: discordBlurple),
+                              Icon(Icons.volume_up_rounded,
+                                  size: 18, color: discordBlurple),
                               SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   'Voice Channel',
-                                  style: TextStyle(color: discordBlurple, fontSize: 14, fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                      color: discordBlurple,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700),
                                 ),
                               ),
                             ],
@@ -373,13 +418,15 @@ class _EventCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   // Description
-                  if (event.description != null && event.description!.isNotEmpty) ...[
+                  if (event.description != null &&
+                      event.description!.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     Text(
                       event.description!,
-                      style: const TextStyle(color: Colors.black87, fontSize: 15, height: 1.6),
+                      style: const TextStyle(
+                          color: Colors.black87, fontSize: 15, height: 1.6),
                     ),
                   ],
                 ],
@@ -406,10 +453,12 @@ class _EventCard extends StatelessWidget {
           Positioned(
             right: -20,
             bottom: -20,
-            child: Icon(Icons.event, size: 120, color: Colors.white.withValues(alpha: 0.1)),
+            child: Icon(Icons.event,
+                size: 120, color: Colors.white.withValues(alpha: 0.1)),
           ),
           const Center(
-            child: Icon(Icons.celebration_rounded, size: 48, color: Colors.white),
+            child:
+                Icon(Icons.celebration_rounded, size: 48, color: Colors.white),
           ),
         ],
       ),
