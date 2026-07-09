@@ -21,7 +21,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await AuthService.loginWithDiscord();
     } catch (e) {
-      setState(() => _error = 'Gagal membuka halaman login. Coba lagi.');
+      debugPrint('Login error details: $e');
+      setState(() => _error = 'Gagal membuka halaman login: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }

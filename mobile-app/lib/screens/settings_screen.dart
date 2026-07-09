@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/user_provider.dart';
 import '../services/preferences_provider.dart';
 import '../utils/localization.dart';
 import 'edit_profile_screen.dart';
+import 'licenses_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -232,8 +234,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                   CircleAvatar(
                     radius: 32,
                     backgroundColor: const Color(0xFFE5E5EA),
-                    backgroundImage:
-                        avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                    backgroundImage: avatarUrl != null
+                        ? CachedNetworkImageProvider(avatarUrl)
+                        : null,
                     child: avatarUrl == null
                         ? const Icon(Icons.person,
                             color: Color(0xFF86868B), size: 32)
@@ -383,11 +386,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                   _buildListTile(
                       context, Icons.info_outline, context.l10n.aboutApp,
                       subtitle: '${context.l10n.aboutAppSub} 1.0.0', onTap: () {
-                    showAboutDialog(
-                      context: context,
-                      applicationName: 'Community Suite',
-                      applicationVersion: '1.0.0',
-                      applicationLegalese: '© 2026 Community Suite',
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LicensesScreen()),
                     );
                   }),
                 ],

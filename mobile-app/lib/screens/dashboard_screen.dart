@@ -164,34 +164,34 @@ class _DashboardScreenState extends State<DashboardScreen>
                       childAspectRatio: 1.4,
                     ),
                     delegate: SliverChildListDelegate([
-                      _StatCard(
+                      RepaintBoundary(child: _StatCard(
                         icon: Icons.people_alt_rounded,
                         value: '${stats.memberCount}',
                         label: context.l10n.totalMembers,
                         color: _kPrimary,
                         bgColor: const Color(0xFFEEF0FD),
-                      ),
-                      _StatCard(
+                      )),
+                      RepaintBoundary(child: _StatCard(
                         icon: Icons.circle,
                         value: '${stats.onlineCount}',
                         label: 'Online',
                         color: const Color(0xFF23A55A),
                         bgColor: const Color(0xFFEAF8F0),
-                      ),
-                      _StatCard(
+                      )),
+                      RepaintBoundary(child: _StatCard(
                         icon: Icons.chat_bubble_rounded,
                         value: '${stats.textChannelCount}',
                         label: 'Text Channels',
                         color: const Color(0xFFF0A32A),
                         bgColor: const Color(0xFFFDF5E6),
-                      ),
-                      _StatCard(
+                      )),
+                      RepaintBoundary(child: _StatCard(
                         icon: Icons.mic_rounded,
                         value: '${stats.voiceChannelCount}',
                         label: 'Voice Channels',
                         color: const Color(0xFF5C6AF7),
                         bgColor: const Color(0xFFEEF0FD),
-                      ),
+                      )),
                     ]),
                   ),
                 ),
@@ -208,36 +208,36 @@ class _DashboardScreenState extends State<DashboardScreen>
                       childAspectRatio: 1.4,
                     ),
                     delegate: SliverChildListDelegate([
-                      _StatCard(
+                      RepaintBoundary(child: _StatCard(
                         icon: Icons.shield_rounded,
                         value: '${stats.roleCount}',
                         label: 'Roles',
                         color: const Color(0xFF9B59B6),
                         bgColor: const Color(0xFFF5EEF8),
-                      ),
-                      _StatCard(
+                      )),
+                      RepaintBoundary(child: _StatCard(
                         icon: null,
                         imageAsset: 'assets/images/boost_icon.png',
                         value: '${stats.boostCount}',
                         label: 'Boosts',
                         color: const Color(0xFFFF73FA),
                         bgColor: const Color(0xFFFDF0FD),
-                      ),
-                      _StatCard(
+                      )),
+                      RepaintBoundary(child: _StatCard(
                         icon: Icons.speed_rounded,
                         value:
                             stats.botPing > 0 ? '${stats.botPing} ms' : '-- ms',
                         label: 'Bot Ping',
                         color: const Color(0xFF1ABC9C),
                         bgColor: const Color(0xFFE8F8F5),
-                      ),
-                      _StatCard(
+                      )),
+                      RepaintBoundary(child: _StatCard(
                         icon: Icons.event_rounded,
                         value: '${stats.upcomingEventsCount}',
                         label: 'Events',
                         color: const Color(0xFFF62440),
                         bgColor: const Color(0xFFFDEAED),
-                      ),
+                      )),
                     ]),
                   ),
                 ),
@@ -326,7 +326,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                               .withValues(alpha: 0.1),
                                           indent: 20,
                                           endIndent: 20),
-                                    _ModActionTile(action: a),
+                                    RepaintBoundary(child: _ModActionTile(action: a)),
                                   ],
                                 );
                               }).toList(),

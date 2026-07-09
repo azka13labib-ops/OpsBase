@@ -167,11 +167,13 @@ class _EventsScreenState extends State<EventsScreen>
                         const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
-                        (context, i) => _EventCard(
-                          event: events[i],
-                          onChanged: _refresh,
-                          onEdit: () =>
-                              _openEventWizard(existingEvent: events[i]),
+                        (context, i) => RepaintBoundary(
+                          child: _EventCard(
+                            event: events[i],
+                            onChanged: _refresh,
+                            onEdit: () =>
+                                _openEventWizard(existingEvent: events[i]),
+                          ),
                         ),
                         childCount: events.length,
                       ),
@@ -279,6 +281,7 @@ class _EventCard extends StatelessWidget {
                 event.coverUrl!,
                 height: 180,
                 fit: BoxFit.cover,
+                cacheHeight: 360, // 2x for high-DPI, limit GPU texture memory
                 errorBuilder: (context, error, stackTrace) =>
                     _buildPlaceholderGradient(),
               )

@@ -1,12 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'api_service.dart';
 
 class PushService {
   // static final _messaging = FirebaseMessaging.instance;
 
   /// Panggil ini setelah user berhasil login.
   static Future<void> initAndRegister() async {
-    print(
+    debugPrint(
         'PushService: Firebase belum disetup, push notification dinonaktifkan.');
     return;
     /*

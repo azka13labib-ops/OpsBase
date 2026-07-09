@@ -31,6 +31,7 @@ dependencies:
   intl: ^0.19.0                 # Format tanggal/waktu (Indonesia)
   table_calendar: ^3.1.2        # Kalender untuk fitur event
   url_launcher: ^6.3.0          # Buka link eksternal seperti WhatsApp
+  cached_network_image: ^3.3.1  # Cache gambar profil dari internet (hemat bandwidth & RAM)
 
 dev_dependencies:
   flutter_test:
