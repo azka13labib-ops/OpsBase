@@ -123,6 +123,7 @@ function createApiServer(discordClient) {
   app.use('/api/moderation', requireAuth, require('./routes/moderation'));
   app.use('/api/events', requireAuth, require('./routes/events'));
   app.use('/api/devices', requireAuth, require('./routes/devices'));
+  app.use('/api/members', requireAuth, require('./routes/members'));
 
   app.use((req, res) => res.status(404).json({ error: 'Endpoint tidak ditemukan' }));
 
