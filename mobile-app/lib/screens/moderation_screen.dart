@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
-import '../utils/localization.dart';
+
 import '../services/user_provider.dart';
 import '../services/socket_service.dart';
 import '../models/models.dart';
+import 'mod_action_bottom_sheet.dart';
+
+final _dateFormat = DateFormat('d MMM HH:mm', 'id_ID');
 
 class ModerationScreen extends StatefulWidget {
   const ModerationScreen({super.key});
@@ -18,7 +22,12 @@ class _ModerationScreenState extends State<ModerationScreen>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
+  
   late Future<List<ModAction>> _historyFuture;
+  String _filterAction = 'all';
+  String _searchQuery = '';
+  
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -57,8 +66,25 @@ class _ModerationScreenState extends State<ModerationScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _QuickActionSheet(),
-    ).then((_) => _refresh());
+      builder: (_) => ModActionBottomSheet(onActionSuccess: _refresh),
+    );
+  }
+
+  Widget _buildFilterChip(String action, String label) {
+    final isSelected = _filterAction == action;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      selectedColor: const Color(0xFF5865F2).withValues(alpha: 0.2),
+      labelStyle: TextStyle(
+        color: isSelected ? const Color(0xFF5865F2) : Colors.grey.shade700,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+      side: BorderSide(color: isSelected ? const Color(0xFF5865F2) : Colors.grey.shade300),
+      onSelected: (selected) {
+        if (selected) setState(() => _filterAction = action);
+      },
+    );
   }
 
   @override
@@ -68,355 +94,173 @@ class _ModerationScreenState extends State<ModerationScreen>
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'mod_fab',
         onPressed: _openQuickAction,
-        icon: const Icon(Icons.bolt),
-        label: Text(context.l10n.quickAction),
+        icon: const Icon(Icons.shield),
+        label: const Text('Ambil Tindakan'),
+        backgroundColor: const Color(0xFF5865F2),
+        foregroundColor: Colors.white,
       ),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _refresh,
-          child: FutureBuilder<List<ModAction>>(
-            future: _historyFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting &&
-                  !snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Center(
-                    child: Text('${snapshot.error}',
-                        style: const TextStyle(color: Colors.redAccent)));
-              }
-              final history = snapshot.data!;
-              if (history.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.shield_outlined,
-                          size: 64, color: Colors.grey.shade300),
-                      const SizedBox(height: 16),
-                      Text(context.l10n.noModHistory,
-                          style: const TextStyle(
-                              color: Colors.black54, fontSize: 16)),
-                    ],
-                  ),
-                );
-              }
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: history.length,
-                separatorBuilder: (_, __) =>
-                    const Divider(color: Colors.black12, height: 1),
-                itemBuilder: (context, i) {
-                  final a = history[i];
-                  IconData iconData;
-                  Color iconColor;
-                  Color bgColor;
-                  switch (a.actionType.toLowerCase()) {
-                    case 'warn':
-                      iconData = Icons.warning_amber_rounded;
-                      iconColor = Colors.orange;
-                      bgColor = Colors.orange.shade50;
-                      break;
-                    case 'kick':
-                      iconData = Icons.person_remove_rounded;
-                      iconColor = Colors.red;
-                      bgColor = Colors.red.shade50;
-                      break;
-                    case 'ban':
-                      iconData = Icons.gavel_rounded;
-                      iconColor = const Color(0xFFF62440);
-                      bgColor = const Color(0xFFF62440).withValues(alpha: 0.1);
-                      break;
-                    case 'mute':
-                      iconData = Icons.volume_off_rounded;
-                      iconColor = Colors.blueGrey;
-                      bgColor = Colors.blueGrey.shade50;
-                      break;
-                    default:
-                      iconData = Icons.info_outline_rounded;
-                      iconColor = Colors.grey;
-                      bgColor = Colors.grey.shade50;
-                  }
-                  return ListTile(
-                    leading: CircleAvatar(
-                        backgroundColor: bgColor,
-                        child: Icon(iconData, color: iconColor, size: 20)),
-                    title: Text(a.targetTag ?? a.targetId,
-                        style: const TextStyle(color: Colors.black87)),
-                    subtitle: Text(
-                      '${a.actionType.toUpperCase()} ${context.l10n.by} ${a.moderatorTag}${a.reason != null ? "\n${a.reason}" : ""}',
-                      style: const TextStyle(color: Colors.black54),
-                    ),
-                    isThreeLine: a.reason != null,
-                    trailing: Text(
-                        DateFormat('d MMM HH:mm', 'id_ID').format(a.createdAt),
-                        style: const TextStyle(
-                            color: Colors.black38, fontSize: 11)),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Bottom sheet untuk warn/kick/ban/mute cepat berdasarkan User ID.
-/// Catatan: untuk versi lebih lanjut, ganti input User ID manual ini dengan
-/// pencarian member (butuh endpoint tambahan GET /api/members?search=).
-class _QuickActionSheet extends StatefulWidget {
-  const _QuickActionSheet();
-
-  @override
-  State<_QuickActionSheet> createState() => _QuickActionSheetState();
-}
-
-class _QuickActionSheetState extends State<_QuickActionSheet> {
-  final _userIdController = TextEditingController();
-  final _reasonController = TextEditingController();
-  String _action = 'warn';
-  bool _loading = false;
-  String? _error;
-
-  List<String> _availableActions(BuildContext context) {
-    final user = context.read<UserProvider>();
-    final actions = <String>[];
-    if (user.can(Capability.moderateWarn)) actions.add('warn');
-    if (user.can(Capability.moderateMute)) actions.add('mute');
-    if (user.can(Capability.moderateKick)) actions.add('kick');
-    if (user.can(Capability.moderateBan)) actions.add('ban');
-    return actions;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    // Set default action ke aksi pertama yang memang boleh dia lakukan
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final available = _availableActions(context);
-      if (available.isNotEmpty && !available.contains(_action)) {
-        setState(() => _action = available.first);
-      }
-    });
-  }
-
-  Future<void> _submit() async {
-    if (_userIdController.text.trim().isEmpty) {
-      setState(() => _error = context.l10n.userIdRequired);
-      return;
-    }
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final userId = _userIdController.text.trim();
-      final reason = _reasonController.text.trim();
-      switch (_action) {
-        case 'warn':
-          await ApiService.warnUser(
-              userId, userId, reason.isEmpty ? context.l10n.noReason : reason);
-          break;
-        case 'kick':
-          await ApiService.kickUser(userId,
-              reason: reason.isEmpty ? null : reason);
-          break;
-        case 'ban':
-          await ApiService.banUser(userId,
-              reason: reason.isEmpty ? null : reason);
-          break;
-        case 'mute':
-          await ApiService.muteUser(userId, 3600000,
-              reason: reason.isEmpty ? null : reason); // default 1 jam
-          break;
-      }
-      if (mounted) Navigator.pop(context);
-    } catch (e) {
-      setState(() => _error = '$e');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    Color currentActionColor;
-    switch (_action) {
-      case 'warn':
-        currentActionColor = Colors.orange;
-        break;
-      case 'kick':
-        currentActionColor = Colors.red;
-        break;
-      case 'ban':
-        currentActionColor = const Color(0xFFF62440);
-        break;
-      case 'mute':
-        currentActionColor = Colors.blueGrey;
-        break;
-      default:
-        currentActionColor = const Color(0xFF5865F2);
-    }
-
-    return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(context.l10n.quickAction,
-                style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5)),
-            const SizedBox(height: 20),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: _availableActions(context).map((a) {
-                final isSelected = _action == a;
-                Color actionColor;
-                switch (a) {
-                  case 'warn':
-                    actionColor = Colors.orange;
-                    break;
-                  case 'kick':
-                    actionColor = Colors.red;
-                    break;
-                  case 'ban':
-                    actionColor = const Color(0xFFF62440);
-                    break;
-                  case 'mute':
-                    actionColor = Colors.blueGrey;
-                    break;
-                  default:
-                    actionColor = const Color(0xFF5865F2);
-                }
-
-                return InkWell(
-                  onTap: () => setState(() => _action = a),
-                  borderRadius: BorderRadius.circular(12),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? actionColor.withValues(alpha: 0.1)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected
-                            ? actionColor
-                            : Colors.grey.withValues(alpha: 0.2),
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    child: Text(
-                      a.toUpperCase(),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? actionColor : Colors.black54,
-                      ),
-                    ),
+            // Search & Filter Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Cari nama di riwayat...',
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                  filled: true,
+                  fillColor: Colors.grey.shade200,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _userIdController,
-              decoration: InputDecoration(
-                labelText: context.l10n.userId,
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none),
-                focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        BorderSide(color: currentActionColor, width: 2)),
+                ),
+                onChanged: (val) {
+                  if (_debounce?.isActive ?? false) _debounce!.cancel();
+                  _debounce = Timer(const Duration(milliseconds: 300), () {
+                    setState(() => _searchQuery = val);
+                  });
+                },
               ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _reasonController,
-              decoration: InputDecoration(
-                labelText: 'Alasan',
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none),
-                focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        BorderSide(color: currentActionColor, width: 2)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _buildFilterChip('all', 'Semua'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('warn', 'Warn'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('mute', 'Mute'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('kick', 'Kick'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('ban', 'Ban'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('message_delete', 'Hapus Pesan'),
+                ],
               ),
             ),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8)),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error_outline,
-                        color: Colors.red, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                        child: Text(_error!,
-                            style: const TextStyle(color: Colors.red))),
-                  ],
+            const SizedBox(height: 8),
+            
+            // List View
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _refresh,
+                child: FutureBuilder<List<ModAction>>(
+                  future: _historyFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting &&
+                        !snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                          child: Text('${snapshot.error}',
+                              style: const TextStyle(color: Colors.redAccent)));
+                    }
+                    
+                    final history = snapshot.data!;
+                    
+                    // Filter Logic
+                    var filteredHistory = history;
+                    if (_filterAction != 'all') {
+                      filteredHistory = filteredHistory
+                          .where((a) => a.actionType.toLowerCase() == _filterAction)
+                          .toList();
+                    }
+                    if (_searchQuery.isNotEmpty) {
+                      final q = _searchQuery.toLowerCase();
+                      filteredHistory = filteredHistory.where((a) => 
+                        (a.targetTag?.toLowerCase().contains(q) ?? false) || 
+                        (a.targetId.contains(q))
+                      ).toList();
+                    }
+
+                    if (filteredHistory.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.search_off_rounded,
+                                size: 64, color: Colors.grey.shade300),
+                            const SizedBox(height: 16),
+                            const Text('Tidak ada riwayat yang cocok',
+                                style: TextStyle(
+                                    color: Colors.black54, fontSize: 16)),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.only(bottom: 80), // padding for FAB
+                      itemCount: filteredHistory.length,
+                      separatorBuilder: (_, __) =>
+                          const Divider(color: Colors.black12, height: 1),
+                      itemBuilder: (context, i) {
+                        final a = filteredHistory[i];
+                        IconData iconData;
+                        Color iconColor;
+                        Color bgColor;
+                        switch (a.actionType.toLowerCase()) {
+                          case 'warn':
+                            iconData = Icons.warning_amber_rounded;
+                            iconColor = Colors.orange;
+                            bgColor = Colors.orange.shade50;
+                            break;
+                          case 'kick':
+                            iconData = Icons.person_remove_rounded;
+                            iconColor = Colors.red;
+                            bgColor = Colors.red.shade50;
+                            break;
+                          case 'ban':
+                            iconData = Icons.gavel_rounded;
+                            iconColor = const Color(0xFFF62440);
+                            bgColor = const Color(0xFFF62440).withValues(alpha: 0.1);
+                            break;
+                          case 'mute':
+                            iconData = Icons.volume_off_rounded;
+                            iconColor = Colors.blueGrey;
+                            bgColor = Colors.blueGrey.shade50;
+                            break;
+                          case 'message_delete':
+                            iconData = Icons.delete_outline_rounded;
+                            iconColor = Colors.purple;
+                            bgColor = Colors.purple.shade50;
+                            break;
+                          default:
+                            iconData = Icons.info_outline_rounded;
+                            iconColor = Colors.grey;
+                            bgColor = Colors.grey.shade50;
+                        }
+                        return RepaintBoundary(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                                backgroundColor: bgColor,
+                                child: Icon(iconData, color: iconColor, size: 20)),
+                            title: Text(a.targetTag ?? a.targetId,
+                                style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+                            subtitle: Text(
+                              '${a.actionType.toUpperCase().replaceAll('_', ' ')} oleh ${a.moderatorTag}${a.reason != null ? "\n${a.reason}" : ""}',
+                              style: const TextStyle(color: Colors.black54),
+                            ),
+                            isThreeLine: a.reason != null,
+                            trailing: Text(
+                                _dateFormat.format(a.createdAt),
+                                style: const TextStyle(
+                                    color: Colors.black38, fontSize: 11)),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
-            ],
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: currentActionColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: _loading ? null : _submit,
-                child: _loading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2))
-                    : Text('Jalankan ${_action.toUpperCase()}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
             ),
-            const SizedBox(height: 12),
           ],
         ),
       ),

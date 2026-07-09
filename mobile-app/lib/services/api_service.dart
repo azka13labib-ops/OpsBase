@@ -200,6 +200,11 @@ class ApiService {
           {String platform = 'android'}) =>
       _post('/api/devices/register',
           {'fcmToken': fcmToken, 'platform': platform});
+  // ---------- Members ----------
+  static Future<List<dynamic>> searchMembers(String query) async {
+    final data = await _get('/api/members/search?q=${Uri.encodeComponent(query)}');
+    return data['members'] as List<dynamic>;
+  }
 }
 
 class ApiException implements Exception {
