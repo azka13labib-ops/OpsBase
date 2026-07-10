@@ -13,6 +13,7 @@ class ApiService {
     final session = Supabase.instance.client.auth.currentSession;
     return {
       'Content-Type': 'application/json',
+      'Bypass-Tunnel-Reminder': 'true',
       if (session != null) 'Authorization': 'Bearer ${session.accessToken}',
     };
   }
@@ -26,10 +27,6 @@ class ApiService {
         final res = await http
             .get(uri, headers: _headers)
             .timeout(const Duration(seconds: 10));
-
-        if (res.statusCode >= 500) {
-          throw Exception('Server error ${res.statusCode}');
-        }
 
         final data = _handleResponse(res);
 
