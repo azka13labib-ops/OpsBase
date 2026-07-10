@@ -6,22 +6,19 @@ module.exports = {
   async execute(message, client) {
     if (!message.guild) return;
     
-    // If message is partial and author is missing, we can't get their ID directly.
     if (!message.author) return;
     
     if (message.author.bot) return;
 
-    // Default assume the user deleted it themselves
     let executorId = message.author.id;
     let executorTag = message.author.tag;
     let reason = `Menghapus pesannya sendiri di #${message.channel.name}`;
     
-    // Attempt to fetch audit logs to see if a moderator deleted it
     try {
       if (message.guild.members.me.permissions.has('ViewAuditLog')) {
         const fetchedLogs = await message.guild.fetchAuditLogs({
           limit: 1,
-          type: 72, // AuditLogEvent.MessageDelete
+          type: 72, 
         });
         
         const deletionLog = fetchedLogs.entries.first();
@@ -57,6 +54,27 @@ module.exports = {
       });
       
       client.io?.to(`guild_${message.guild.id}`).emit('stats_updated');
+
+      // Send to discord log channel
+      const logChannel = message.guild.channels.cache.find(c => c.name === 'admin-logs' || c.name === 'audit-log' || c.name === 'logs');
+      if (logChannel) {
+        const { EmbedBuilder } = require('discord.js');
+        const embed = new EmbedBuilder()
+          .setColor('#ED4245')
+          .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
+          .setDescription(`**Message sent by <@${message.author.id}> deleted in <#${message.channel.id}>**\n${message.content || '*No text content*'}`)
+          .addFields(
+            { name: 'Author', value: `<@${message.author.id}> (${message.author.id})`, inline: true },
+            { name: 'Channel', value: `<#${message.channel.id}>`, inline: true }
+          )
+          .setTimestamp();
+          
+        if (executorId !== message.author.id) {
+            embed.addFields({ name: 'Deleted By', value: `<@${executorId}> (${executorId})`, inline: false });
+        }
+        
+        await logChannel.send({ embeds: [embed] }).catch(console.error);
+      }
     } catch (err) {
       console.error('Failed to log messageDelete', err);
     }
