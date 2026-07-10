@@ -197,10 +197,9 @@ class _ModerationScreenState extends State<ModerationScreen>
                     }
 
                     return ListView.separated(
-                      padding: const EdgeInsets.only(bottom: 80), // padding for FAB
+                      padding: const EdgeInsets.only(bottom: 80, top: 8), // padding for FAB
                       itemCount: filteredHistory.length,
-                      separatorBuilder: (_, __) =>
-                          const Divider(color: Colors.black12, height: 1),
+                      separatorBuilder: (_, __) => const Divider(color: Colors.black12, height: 1),
                       itemBuilder: (context, i) {
                         final a = filteredHistory[i];
                         IconData iconData;
@@ -237,22 +236,103 @@ class _ModerationScreenState extends State<ModerationScreen>
                             iconColor = Colors.grey;
                             bgColor = Colors.grey.shade50;
                         }
+                        
                         return RepaintBoundary(
-                          child: ListTile(
-                            leading: CircleAvatar(
-                                backgroundColor: bgColor,
-                                child: Icon(iconData, color: iconColor, size: 20)),
-                            title: Text(a.targetTag ?? a.targetId,
-                                style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
-                            subtitle: Text(
-                              '${a.actionType.toUpperCase().replaceAll('_', ' ')} oleh ${a.moderatorTag}${a.reason != null ? "\n${a.reason}" : ""}',
-                              style: const TextStyle(color: Colors.black54),
+                          child: InkWell(
+                            onTap: () {}, // Adds splash effect
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor: bgColor,
+                                    child: Icon(iconData, color: iconColor, size: 20),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            Expanded(
+                                              child: Row(
+                                                children: [
+                                                  Flexible(
+                                                    child: Text(
+                                                      a.targetTag ?? a.targetId,
+                                                      style: const TextStyle(
+                                                        color: Colors.black87, 
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 15,
+                                                      ),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: bgColor,
+                                                      borderRadius: BorderRadius.circular(4),
+                                                      border: Border.all(color: iconColor.withValues(alpha: 0.3)),
+                                                    ),
+                                                    child: Text(
+                                                      a.actionType.toUpperCase().replaceAll('_', ' '),
+                                                      style: TextStyle(
+                                                        color: iconColor,
+                                                        fontSize: 9,
+                                                        fontWeight: FontWeight.bold,
+                                                        letterSpacing: 0.5,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Text(
+                                              _dateFormat.format(a.createdAt),
+                                              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.shield_outlined, size: 14, color: Colors.grey.shade600),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              a.moderatorTag,
+                                              style: TextStyle(color: Colors.grey.shade700, fontSize: 13, fontWeight: FontWeight.w500),
+                                            ),
+                                          ],
+                                        ),
+                                        if (a.reason != null && a.reason!.isNotEmpty) ...[
+                                          const SizedBox(height: 8),
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade50,
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(color: Colors.grey.shade200),
+                                            ),
+                                            child: Text(
+                                              a.reason!,
+                                              style: TextStyle(color: Colors.grey.shade800, fontSize: 13, height: 1.4),
+                                            ),
+                                          ),
+                                        ]
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            isThreeLine: a.reason != null,
-                            trailing: Text(
-                                _dateFormat.format(a.createdAt),
-                                style: const TextStyle(
-                                    color: Colors.black38, fontSize: 11)),
                           ),
                         );
                       },
