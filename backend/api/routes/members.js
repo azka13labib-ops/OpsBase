@@ -6,6 +6,8 @@ const { CAPABILITIES } = require('../../config/permissions');
 // GET /api/members/search?q=username
 router.get('/search', requireCapability(CAPABILITIES.DASHBOARD_VIEW), async (req, res) => {
   const query = req.query.q?.toLowerCase() || '';
+  console.log(`[API] Member search query received: "${query}"`);
+  
   if (!query || query.length < 2) {
     return res.json({ members: [] });
   }
@@ -16,8 +18,11 @@ router.get('/search', requireCapability(CAPABILITIES.DASHBOARD_VIEW), async (req
       return res.status(404).json({ error: 'Server tidak ditemukan' });
     }
 
-    // Fetch members matching the query from discord (this searches username or nickname)
-    const fetchedMembers = await guild.members.fetch({ query, limit: 15 });
+    // Fetch members with a 5 second timeout to prevent Flutter TimeoutException
+    const fetchPromise = guild.members.fetch({ query, limit: 15 });
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Discord API timeout')), 5000));
+    
+    const fetchedMembers = await Promise.race([fetchPromise, timeoutPromise]);
     
     const results = fetchedMembers.map(member => ({
       id: member.id,
@@ -30,7 +35,7 @@ router.get('/search', requireCapability(CAPABILITIES.DASHBOARD_VIEW), async (req
     res.json({ members: results });
   } catch (err) {
     console.error('Error searching members:', err);
-    res.status(500).json({ error: 'Gagal mencari member' });
+    res.status(500).json({ error: `Gagal mencari member: ${err.message}` });
   }
 });
 
